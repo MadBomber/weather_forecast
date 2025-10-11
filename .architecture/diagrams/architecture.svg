@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <style>
+      .component { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; rx: 8; }
+      .api-layer { fill: #312e81; stroke: #6366f1; stroke-width: 2; rx: 8; }
+      .cache { fill: #1e3a3a; stroke: #10b981; stroke-width: 2; rx: 8; }
+      .external { fill: #3a1e1e; stroke: #ef4444; stroke-width: 2; rx: 8; }
+      .text { fill: #e2e8f0; font-family: 'Courier New', monospace; font-size: 14px; text-anchor: middle; }
+      .title { fill: #60a5fa; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; text-anchor: middle; }
+      .arrow { stroke: #64748b; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .cache-arrow { stroke: #10b981; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .external-arrow { stroke: #ef4444; stroke-width: 2; fill: none; marker-end: url(#arrowhead-red); }
+      .label { fill: #94a3b8; font-family: 'Courier New', monospace; font-size: 12px; text-anchor: middle; }
+      .ttl-label { fill: #10b981; font-family: 'Courier New', monospace; font-size: 11px; font-style: italic; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#64748b" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title">WeatherForecast API Architecture</text>
+
+  <!-- Clients Layer -->
+  <rect x="150" y="60" width="120" height="50" class="component"/>
+  <text x="210" y="90" class="text">Web Clients</text>
+
+  <rect x="340" y="60" width="120" height="50" class="component"/>
+  <text x="400" y="90" class="text">Mobile Apps</text>
+
+  <rect x="530" y="60" width="120" height="50" class="component"/>
+  <text x="590" y="90" class="text">IoT Devices</text>
+
+  <!-- API Gateway Layer -->
+  <rect x="250" y="170" width="300" height="60" class="api-layer"/>
+  <text x="400" y="195" class="title">Rails API (Falcon Server)</text>
+  <text x="400" y="215" class="text">Controllers → Services</text>
+
+  <!-- Weather Adapters -->
+  <rect x="100" y="290" width="200" height="50" class="component"/>
+  <text x="200" y="320" class="text">OpenWeatherMap</text>
+  <text x="200" y="335" class="label">(Primary)</text>
+
+  <rect x="500" y="290" width="200" height="50" class="component"/>
+  <text x="600" y="320" class="text">NWS Adapter</text>
+  <text x="600" y="335" class="label">(Future)</text>
+
+  <!-- Redis Cache -->
+  <rect x="310" y="400" width="180" height="70" class="cache"/>
+  <text x="400" y="425" class="title">Redis Cache</text>
+  <text x="400" y="445" class="ttl-label">TTL: 30 minutes</text>
+  <text x="400" y="460" class="ttl-label">Key: weather:provider:zip:hour</text>
+
+  <!-- External APIs -->
+  <rect x="100" y="520" width="200" height="50" class="external"/>
+  <text x="200" y="545" class="text">OpenWeatherMap API</text>
+  <text x="200" y="560" class="label">(Global Coverage)</text>
+
+  <rect x="500" y="520" width="200" height="50" class="external"/>
+  <text x="600" y="545" class="text">National Weather Service</text>
+  <text x="600" y="560" class="label">(US Only, Free)</text>
+
+  <!-- Arrows from Clients to API -->
+  <path d="M 210 110 L 350 170" class="arrow"/>
+  <path d="M 400 110 L 400 170" class="arrow"/>
+  <path d="M 590 110 L 450 170" class="arrow"/>
+
+  <!-- Arrows from API to Adapters -->
+  <path d="M 350 230 L 250 290" class="arrow"/>
+  <text x="285" y="265" class="label">Request</text>
+
+  <path d="M 450 230 L 550 290" class="arrow"/>
+  <text x="515" y="265" class="label">Request</text>
+
+  <!-- Arrows from Adapters to Cache -->
+  <path d="M 250 340 L 330 400" class="cache-arrow"/>
+  <text x="275" y="375" class="label">Cache Check</text>
+
+  <path d="M 550 340 L 470 400" class="cache-arrow"/>
+  <text x="525" y="375" class="label">Cache Check</text>
+
+  <!-- Arrows from Adapters to External APIs -->
+  <path d="M 200 340 L 200 520" class="external-arrow"/>
+  <text x="230" y="430" class="label">API Call (on miss)</text>
+
+  <path d="M 600 340 L 600 520" class="external-arrow"/>
+  <text x="635" y="430" class="label">API Call (on miss)</text>
+
+  <!-- Legend -->
+  <rect x="20" y="500" width="15" height="15" class="component"/>
+  <text x="45" y="512" class="label" style="text-anchor: start;">Application Components</text>
+
+  <rect x="20" y="525" width="15" height="15" class="cache"/>
+  <text x="45" y="537" class="label" style="text-anchor: start;">Cache Layer</text>
+
+  <rect x="20" y="550" width="15" height="15" class="external"/>
+  <text x="45" y="562" class="label" style="text-anchor: start;">External Services</text>
+</svg>
