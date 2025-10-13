@@ -54,7 +54,6 @@ module Api
         render json: { error: "Weather service unavailable. Please try again later." }, status: :service_unavailable
       rescue StandardError => e
         debug_me "StandardError: #{e.message}"
-        debug_me { [ e.backtrace ] }
         render json: { error: "An unexpected error occurred." }, status: :internal_server_error
       end
 
@@ -95,7 +94,6 @@ module Api
         render json: { error: "Weather service unavailable. Please try again later." }, status: :service_unavailable
       rescue StandardError => e
         debug_me "StandardError: #{e.message}"
-        debug_me { [ e.backtrace ] }
         render json: { error: "An unexpected error occurred." }, status: :internal_server_error
       end
 
