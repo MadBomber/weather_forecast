@@ -7,18 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-10-13
+
 ### Added
 - Comprehensive architecture review document (`architecture_review.md`) covering 12 major areas with detailed findings and prioritized recommendations
+  - Overall assessment: 7/10 - Strong foundation with critical security gaps
+  - Detailed analysis of project structure, ADRs, code quality, testing, API design, security, and scalability
+  - Prioritized recommendations across 4 phases (16 weeks of improvements)
 - Performance metrics to forecast endpoint (cached status and duration_ms tracking)
+  - Tracks whether data came from Redis cache or external API
+  - Records request duration in milliseconds
+  - Cache hits show ~87x performance improvement (354ms → 4ms)
 - Utility script `bin/flush_cache.sh` for Redis cache management
-- Utility script `bin/weather.sh` for CLI-based weather data queries with pretty-print JSON
+  - Parses REDIS_URL for connection details
+  - Counts and deletes all `weather:*` keys
+  - Verifies successful deletion with detailed output
+- Utility script `bin/weather.sh` for CLI-based weather data queries
+  - Support for current weather and forecast queries
+  - Pretty-print JSON output with `jq`
+  - URL encoding for locations with spaces
 - Utility scripts `bin/start.sh` and `bin/stop.sh` for server management
+  - Graceful server startup with PID tracking
+  - Port conflict detection and handling
+  - Graceful shutdown with SIGTERM signals
 - Comprehensive utility scripts documentation in README.md
+  - Server management section (start.sh, stop.sh)
+  - Weather data access section (weather.sh)
+  - Cache management section (flush_cache.sh)
+  - Complete workflow examples
 - dotenv-rails gem for automatic `.env.local` file loading
+  - Eliminates need for manual environment variable management
+  - Automatically loads `.env.local` on application startup
+- CHANGELOG.md documenting all releases and pull requests
 
 ### Changed
 - Forecast endpoint response format now includes `data` and `performance` keys for consistency
+  - Previously returned flat array, now returns structured envelope
+  - Enables future extension with metadata
 - Enhanced `bin/weather.sh` with JSON pretty-printing using `jq`
+  - Improved readability for CLI usage
+  - Syntax highlighting for JSON output
 
 ## [0.2.0] - 2025-10-13
 
