@@ -68,21 +68,39 @@ module Api
       #   GET /api/v1/forecast?location=London&days=5
       #
       # Response:
-      #   [
-      #     {
-      #       "location": "London",
-      #       "timestamp": "2025-10-12T12:00:00Z",
-      #       "temperature": {...},
-      #       "conditions": "Sunny",
+      #   {
+      #     "data": [
+      #       {
+      #         "location": "London",
+      #         "timestamp": "2025-10-12T12:00:00Z",
+      #         "temperature": {...},
+      #         "conditions": "Sunny",
+      #         ...
+      #       },
       #       ...
-      #     },
-      #     ...
-      #   ]
+      #     ],
+      #     "performance": {
+      #       "cached": true,
+      #       "duration_ms": 5.2
+      #     }
+      #   }
       def forecast
         debug_me { [ :@location, :@days ] }
 
+        start_time = Time.current
+        cache_key = weather_service.forecast_cache_key(location: @location, days: @days)
+        cached = Rails.cache.exist?(cache_key)
+
         forecasts = weather_service.forecast(location: @location, days: @days)
-        render json: forecasts.map(&:to_h)
+        duration_ms = ((Time.current - start_time) * 1000).round(2)
+
+        render json: {
+          data: forecasts.map(&:to_h),
+          performance: {
+            cached: cached,
+            duration_ms: duration_ms
+          }
+        }
       rescue Weather::BaseAdapter::LocationNotFoundError => e
         debug_me "LocationNotFoundError: #{e.message}"
         render json: { error: "Location not found: #{@location}" }, status: :not_found

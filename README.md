@@ -20,6 +20,7 @@ A Ruby on Rails 8 API application that provides a unified interface for accessin
 - [Architecture](#architecture)
 - [Technology Stack](#technology-stack)
 - [Getting Started](#getting-started)
+- [Utility Scripts](#utility-scripts)
 - [API Documentation](#api-documentation)
 - [Development](#development)
 - [Testing](#testing)
@@ -193,6 +194,199 @@ curl http://localhost:3000/api/v1/forecasts/10001
   "wind_speed": 15.5,
   "precipitation_chance": 20.0
 }
+```
+
+## Utility Scripts
+
+The project includes several utility scripts in the `bin/` directory for common development and maintenance tasks.
+
+### Server Management
+
+#### `bin/start.sh` - Start the Application Server
+
+Starts the Weather Forecast API server in the background using Falcon web server.
+
+**Features:**
+- Starts server on http://localhost:3000
+- Runs in background with PID tracking
+- Logs output to `log/server.log`
+- Prevents duplicate server instances
+- Creates necessary directories automatically
+
+**Usage:**
+```bash
+bin/start.sh
+```
+
+**Output:**
+```
+Starting Weather Forecast API server...
+Environment: development
+Binding to: http://localhost:3000
+Server started successfully (PID: 12345)
+Logs: log/server.log
+Stop with: bin/stop.sh
+```
+
+**Environment Variables:**
+- `RAILS_ENV` - Rails environment (default: development)
+
+#### `bin/stop.sh` - Stop the Application Server
+
+Gracefully stops the running Weather Forecast API server.
+
+**Features:**
+- Graceful shutdown with SIGTERM
+- Force kill fallback with SIGKILL after 5 seconds
+- Cleans up orphaned processes on port 3000
+- Removes PID file after shutdown
+- Handles missing/stale PID files
+
+**Usage:**
+```bash
+bin/stop.sh
+```
+
+**Output:**
+```
+Stopping Weather Forecast API server (PID: 12345)...
+Server stopped successfully
+```
+
+### Weather Data Access
+
+#### `bin/weather.sh` - Query Weather Forecast
+
+CLI tool to query weather forecasts from the running API server.
+
+**Features:**
+- Pretty-printed JSON output (via jq)
+- Supports all location formats (city, zip, coordinates)
+- URL encodes location parameters automatically
+- Configurable API endpoint via environment variables
+
+**Usage:**
+```bash
+bin/weather.sh <location>
+```
+
+**Examples:**
+```bash
+# By city name
+bin/weather.sh London
+
+# By zip code
+bin/weather.sh 90210
+
+# By city with spaces (use quotes)
+bin/weather.sh "New York"
+
+# By coordinates
+bin/weather.sh 51.5074,-0.1278
+```
+
+**Sample Output:**
+```json
+{
+  "data": [
+    {
+      "location": "London",
+      "timestamp": "2025-10-13T13:00:00-05:00",
+      "temperature": {
+        "celsius": 15.3,
+        "fahrenheit": 59.5,
+        "kelvin": 288.5
+      },
+      "conditions": "Clouds",
+      "humidity": 75.0,
+      "wind_speed": 4.0,
+      "wind_direction": "ENE",
+      "precipitation_chance": 0.0,
+      "description": "overcast clouds"
+    }
+  ],
+  "performance": {
+    "cached": true,
+    "duration_ms": 1.96
+  }
+}
+```
+
+**Environment Variables:**
+- `API_HOST` - API server hostname (default: localhost)
+- `API_PORT` - API server port (default: 3000)
+
+**Requirements:**
+- `jq` must be installed for JSON formatting
+- Server must be running (use `bin/start.sh`)
+
+### Cache Management
+
+#### `bin/flush_cache.sh` - Clear Weather Cache
+
+Removes all cached weather data from Redis. Useful for development, testing, and maintenance.
+
+**Features:**
+- Parses REDIS_URL for connection details
+- Counts cache keys before deletion
+- Deletes all keys matching "weather:*" pattern
+- Verifies successful deletion
+- Handles empty cache gracefully
+
+**Usage:**
+```bash
+bin/flush_cache.sh
+```
+
+**Output (with cached data):**
+```
+Flushing weather cache from Redis...
+Redis URL: redis://localhost:6379/0
+Found 5 weather cache key(s)
+Weather cache flushed successfully (5 key(s) deleted)
+```
+
+**Output (empty cache):**
+```
+Flushing weather cache from Redis...
+Redis URL: redis://localhost:6379/0
+No weather cache keys found
+```
+
+**Environment Variables:**
+- `REDIS_URL` - Redis connection URL (default: redis://localhost:6379/0)
+
+**Use Cases:**
+- Force fresh API calls during development
+- Clear stale data after API changes
+- Reset cache before running tests
+- Maintenance and troubleshooting
+
+### Script Workflow Example
+
+Complete workflow for development:
+
+```bash
+# 1. Start the server
+bin/start.sh
+
+# 2. Query weather (uncached - slower)
+bin/weather.sh London
+# Output shows: "cached": false, "duration_ms": 354.01
+
+# 3. Query same location (cached - fast)
+bin/weather.sh London
+# Output shows: "cached": true, "duration_ms": 1.96
+
+# 4. Clear cache
+bin/flush_cache.sh
+
+# 5. Query again (uncached again)
+bin/weather.sh London
+# Output shows: "cached": false
+
+# 6. Stop the server
+bin/stop.sh
 ```
 
 ## API Documentation

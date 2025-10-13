@@ -6,6 +6,7 @@ gem "falcon-rails"
 gem "redis"
 
 gem "openweathermap"
+gem "dotenv-rails"
 
 group :development, :test do
   gem "debug_me"
