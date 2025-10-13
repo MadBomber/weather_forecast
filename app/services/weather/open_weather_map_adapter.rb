@@ -14,7 +14,7 @@ module Weather
     # @param location [String] Location identifier (city name, zip code, or coordinates)
     # @return [Weather::Forecast] Current weather forecast
     def current_weather(location:)
-      debug_me { [:location] }
+      debug_me { [ :location ] }
 
       cache_key_value = cache_key(location: location, type: :current)
 
@@ -29,7 +29,7 @@ module Weather
     # @param days [Integer] Number of days to forecast (default: 7)
     # @return [Array<Weather::Forecast>] Array of weather forecasts
     def forecast(location:, days: 7)
-      debug_me { [:location, :days] }
+      debug_me { [ :location, :days ] }
 
       cache_key_value = cache_key(location: location, type: :forecast)
 
@@ -53,7 +53,7 @@ module Weather
       url = "#{BASE_URL}/weather"
       params = build_params(location)
 
-      debug_me { [:url, :params] }
+      debug_me { [ :url, :params ] }
 
       make_request(url, params)
     end
@@ -66,7 +66,7 @@ module Weather
       params = build_params(location)
       params[:cnt] = days * 8 # 8 data points per day (every 3 hours)
 
-      debug_me { [:url, :params] }
+      debug_me { [ :url, :params ] }
 
       make_request(url, params)
     end
@@ -97,11 +97,11 @@ module Weather
       uri = URI(url)
       uri.query = URI.encode_www_form(params)
 
-      debug_me { [:uri] }
+      debug_me { [ :uri ] }
 
       response = Net::HTTP.get_response(uri)
 
-      debug_me { [:response_code] }
+      debug_me { [ :response_code ] }
 
       handle_response(response)
     end
@@ -123,13 +123,13 @@ module Weather
         raise ApiError, error_data["message"] || "API request failed with status #{response.code}"
       end
     rescue JSON::ParserError => e
-      debug_me { [:e] }
+      debug_me { [ :e ] }
       raise ApiError, "Invalid JSON response from API"
     end
 
     # Parse current weather response into Forecast object
     def parse_current_weather(response)
-      debug_me { [:response] }
+      debug_me { [ :response ] }
 
       Weather::Forecast.new(
         location: response["name"] || "Unknown",
@@ -148,7 +148,7 @@ module Weather
 
     # Parse forecast response into array of Forecast objects
     def parse_forecast(response, days)
-      debug_me { [:response, :days] }
+      debug_me { [ :response, :days ] }
 
       location_name = response.dig("city", "name") || "Unknown"
 

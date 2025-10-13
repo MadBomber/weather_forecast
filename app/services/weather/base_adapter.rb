@@ -13,7 +13,7 @@ module Weather
 
     def initialize(api_key: nil)
       @api_key = api_key || default_api_key
-      debug_me { [:@api_key] } if @api_key
+      debug_me { [ :@api_key ] } if @api_key
     end
 
     # Fetch current weather for a location
@@ -69,12 +69,12 @@ module Weather
 
     # Default cache TTL for current weather (15 minutes)
     def current_ttl
-      ENV.fetch('REDIS_TTL_CURRENT', 15.minutes).to_i
+      ENV.fetch("REDIS_TTL_CURRENT", 15.minutes).to_i
     end
 
     # Default cache TTL for forecast (30 minutes)
     def forecast_ttl
-      ENV.fetch('REDIS_TTL_FORECAST',30.minutes).to_i
+      ENV.fetch("REDIS_TTL_FORECAST", 30.minutes).to_i
     end
   end
 end

@@ -8,8 +8,8 @@ module Api
     # Weather API controller
     # Provides endpoints for current weather and forecast data
     class WeatherController < ApplicationController
-      before_action :validate_location_param, only: [:current, :forecast]
-      before_action :validate_days_param, only: [:forecast]
+      before_action :validate_location_param, only: [ :current, :forecast ]
+      before_action :validate_days_param, only: [ :forecast ]
 
       # GET /api/v1/current?location=<location>
       # Returns current weather for the specified location
@@ -39,7 +39,7 @@ module Api
       #     "description": "Partly cloudy with a chance of rain"
       #   }
       def current
-        debug_me { [:@location] }
+        debug_me { [ :@location ] }
 
         forecast = weather_service.current_weather(location: @location)
         render json: forecast.to_h
@@ -54,7 +54,7 @@ module Api
         render json: { error: "Weather service unavailable. Please try again later." }, status: :service_unavailable
       rescue StandardError => e
         debug_me "StandardError: #{e.message}"
-        debug_me { [e.backtrace] }
+        debug_me { [ e.backtrace ] }
         render json: { error: "An unexpected error occurred." }, status: :internal_server_error
       end
 
@@ -80,7 +80,7 @@ module Api
       #     ...
       #   ]
       def forecast
-        debug_me { [:@location, :@days] }
+        debug_me { [ :@location, :@days ] }
 
         forecasts = weather_service.forecast(location: @location, days: @days)
         render json: forecasts.map(&:to_h)
@@ -95,7 +95,7 @@ module Api
         render json: { error: "Weather service unavailable. Please try again later." }, status: :service_unavailable
       rescue StandardError => e
         debug_me "StandardError: #{e.message}"
-        debug_me { [e.backtrace] }
+        debug_me { [ e.backtrace ] }
         render json: { error: "An unexpected error occurred." }, status: :internal_server_error
       end
 
