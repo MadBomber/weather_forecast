@@ -67,9 +67,9 @@ module Weather
       "weather:#{service_name}:#{type}:#{normalized_location}:#{hour_bucket}"
     end
 
-    # Default cache TTL for current weather (15 minutes)
+    # Default cache TTL for current weather (30 minutes)
     def current_ttl
-      ENV.fetch("REDIS_TTL_CURRENT", 15.minutes).to_i
+      ENV.fetch("REDIS_TTL_CURRENT", 30.minutes).to_i
     end
 
     # Default cache TTL for forecast (30 minutes)
