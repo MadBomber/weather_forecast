@@ -26,5 +26,5 @@ API_URL="http://${API_HOST}:${API_PORT}/api/v1/forecast"
 # URL encode the location parameter
 ENCODED_LOCATION=$(printf %s "$LOCATION" | jq -sRr @uri)
 
-# Make the request
-curl -s "${API_URL}?location=${ENCODED_LOCATION}"
+# Make the request and pretty-print the JSON
+curl -s "${API_URL}?location=${ENCODED_LOCATION}" | jq .
