@@ -5,7 +5,19 @@
       "Bash(bundle:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat(api): implement weather API controller and OpenWeatherMap adapter\n\nAdd complete weather API implementation including:\n- WeatherController with current and forecast endpoints\n- OpenWeatherMapAdapter for API integration\n- Weather models (Forecast, Temperature) as value objects\n- BaseAdapter interface for extensibility\n\nFeatures:\n- GET /api/v1/current?location=<location> - current weather\n- GET /api/v1/forecast?location=<location>&days=<days> - multi-day forecast\n- Redis caching with configurable TTL\n- Comprehensive error handling (404, 429, 503, 500)\n- Support for multiple location formats (city, zip, coordinates)\n- Temperature conversion (Celsius, Fahrenheit, Kelvin)\n- Uses debug_me gem for debugging\n\nCloses #5\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh issue close:*)"
     ],
     "deny": [],
     "ask": []
