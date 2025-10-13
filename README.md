@@ -1,3 +1,10 @@
+> I chose to use this small project as an experiment in two different areas.  First, I want to see how the Falcon web server performs in a production environment. Second, I want to see what Claude Code with the claude-swarm and the claude-on-rails and the ai-software-architect libraries' capabilities.<br/><br/>
+> I like what I see with the ai-software-architect library.  The claude-swarm library I think is OBE in that anthropic has incorporated some of that kind of functionality into CC after the introduction of claude-swarm.<br/><br/>
+> I would also like to take a look a Obie's `roast` library.<br/>
+> -- Dewayne VanHoozer, actual real human developer
+
+<br/><br/>
+
 # WeatherForecast API
 
 A Ruby on Rails 8 API application that provides a unified interface for accessing weather forecast data from multiple third-party providers. Built with modern development practices, comprehensive architectural documentation, and designed for scalability.
