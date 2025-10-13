@@ -17,7 +17,19 @@
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "Bash(gh pr view:*)",
-      "Bash(gh issue close:*)"
+      "Bash(gh issue close:*)",
+      "Bash(bin/rails server:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(curl -s \"http://localhost:3000/api/v1/forecast?location=71111\")",
+      "Bash(python3:*)",
+      "Bash(chmod:*)",
+      "Bash(bin/stop.sh:*)",
+      "Bash(bin/start.sh:*)",
+      "Bash(curl -s \"http://localhost:3000/api/v1/current?location=London\")",
+      "Bash(bin/weather.sh:*)",
+      "Bash(redis-cli:*)",
+      "Bash(bin/flush_cache.sh:*)"
     ],
     "deny": [],
     "ask": []
