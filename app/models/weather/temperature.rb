@@ -8,13 +8,15 @@ module Weather
 
     attr_reader :celsius
 
-    def initialize(celsius: nil, fahrenheit: nil)
+    def initialize(celsius: nil, fahrenheit: nil, kelvin: nil)
       if celsius
         @celsius = celsius.to_f
       elsif fahrenheit
         @celsius = fahrenheit_to_celsius(fahrenheit.to_f)
+      elsif kelvin
+        @celsius = kelvin.to_f - 273.15
       else
-        raise ArgumentError, "Either celsius or fahrenheit must be provided"
+        raise ArgumentError, "Either celsius, fahrenheit, or kelvin must be provided"
       end
     end
 

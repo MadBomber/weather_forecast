@@ -19,7 +19,7 @@ RSpec.describe Weather::Forecast, type: :model do
 
   describe "#initialize" do
     it "creates a forecast with valid attributes" do
-      forecast = described_class.new(valid_attributes)
+      forecast = described_class.new(**valid_attributes)
 
       expect(forecast.location).to eq("London")
       expect(forecast.conditions).to eq("Sunny")
@@ -30,7 +30,7 @@ RSpec.describe Weather::Forecast, type: :model do
     end
 
     it "creates temperature object from hash" do
-      forecast = described_class.new(valid_attributes)
+      forecast = described_class.new(**valid_attributes)
 
       expect(forecast.temperature).to be_a(Weather::Temperature)
       expect(forecast.temperature.celsius).to eq(20.0)
@@ -38,7 +38,7 @@ RSpec.describe Weather::Forecast, type: :model do
 
     it "accepts string timestamp" do
       attributes = valid_attributes.merge(timestamp: "2025-10-12T10:00:00Z")
-      forecast = described_class.new(attributes)
+      forecast = described_class.new(**attributes)
 
       expect(forecast.timestamp).to be_a(Time)
     end
@@ -46,7 +46,7 @@ RSpec.describe Weather::Forecast, type: :model do
 
   describe "#to_h" do
     it "converts forecast to hash" do
-      forecast = described_class.new(valid_attributes)
+      forecast = described_class.new(**valid_attributes)
       hash = forecast.to_h
 
       expect(hash).to be_a(Hash)
@@ -57,7 +57,7 @@ RSpec.describe Weather::Forecast, type: :model do
     end
 
     it "includes timestamp in ISO8601 format" do
-      forecast = described_class.new(valid_attributes)
+      forecast = described_class.new(**valid_attributes)
       hash = forecast.to_h
 
       expect(hash[:timestamp]).to be_a(String)
@@ -67,7 +67,7 @@ RSpec.describe Weather::Forecast, type: :model do
 
   describe "#to_json" do
     it "converts forecast to JSON string" do
-      forecast = described_class.new(valid_attributes)
+      forecast = described_class.new(**valid_attributes)
       json = forecast.to_json
 
       expect(json).to be_a(String)
