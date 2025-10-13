@@ -4,16 +4,18 @@ gem "rails", "~> 8.0.3"
 gem "bootsnap", require: false
 gem "falcon-rails"
 gem "redis"
-gem "rubocop-rails"
 
 gem "openweathermap"
 
 group :development, :test do
-  gem "claude-on-rails"
   gem "debug_me"
+end
 
-  # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
+group :development do
   gem "brakeman", require: false
+  gem "claude-on-rails"
+  gem "rubocop-rails"
+  gem "rubocop-rails-omakase", require: false
 end
 
 group :test do
