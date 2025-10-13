@@ -47,6 +47,21 @@ module Weather
       self.class.name.demodulize.gsub("Adapter", "")
     end
 
+    # Get cache key for forecast data
+    # @param location [String] Location identifier
+    # @param days [Integer] Number of days (optional, not used in key generation)
+    # @return [String] Cache key
+    def forecast_cache_key(location:, days: 7)
+      cache_key(location: location, type: :forecast)
+    end
+
+    # Get cache key for current weather data
+    # @param location [String] Location identifier
+    # @return [String] Cache key
+    def current_cache_key(location:)
+      cache_key(location: location, type: :current)
+    end
+
     protected
 
     attr_reader :api_key
