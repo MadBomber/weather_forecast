@@ -795,34 +795,7 @@ This project uses **Architecture Decision Records (ADRs)** to document significa
 
 ## Contributing
 
-### Getting Started
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feat/amazing-feature`)
-3. Make your changes
-4. Write tests (maintain >80% coverage)
-5. Use conventional commits (`feat(scope): description`)
-6. Push to your fork
-7. Open a Pull Request
-
-### Development Workflow
-
-1. **Check existing ADRs** before making architectural changes
-2. **Write tests first** (TDD approach)
-3. **Use debug_me** for debugging (never puts)
-4. **Run RSpec** before committing
-5. **Update documentation** if needed
-6. **Create ADR** for significant decisions
-
-### Code Review Checklist
-
-- [ ] Tests pass (`bundle exec rspec`)
-- [ ] Security check passes (`bundle exec brakeman`)
-- [ ] Code style follows RuboCop
-- [ ] Test coverage maintained (>80%)
-- [ ] Conventional commit format used
-- [ ] Documentation updated
-- [ ] ADR created if needed
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup instructions, testing requirements, VCR cassette guidance, commit conventions, and the PR process.
 
 ## Performance
 
