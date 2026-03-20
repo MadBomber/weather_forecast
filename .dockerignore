@@ -40,6 +40,10 @@
 # Ignore development files
 /.devcontainer
 
+# Ignore test artifacts
+/spec
+/coverage
+
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
