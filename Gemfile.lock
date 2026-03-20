@@ -368,6 +368,9 @@ GEM
     public_suffix (7.0.2)
     racc (1.8.1)
     rack (3.2.4)
+    rack-cors (3.0.0)
+      logger
+      rack (>= 3.0.14)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -526,6 +529,7 @@ DEPENDENCIES
   dotenv-rails
   falcon-rails
   openweathermap
+  rack-cors
   rails (~> 8.0.3)
   redis
   rspec-rails
