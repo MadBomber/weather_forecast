@@ -20,20 +20,24 @@ RSpec.describe "Api::V1::Weather", type: :request do
 
   before do
     allow(Weather::OpenWeatherMapAdapter).to receive(:new).and_return(mock_adapter)
+    allow(mock_adapter).to receive(:current_cache_key).with(location: anything).and_return("weather:test:current:london:1234")
+    allow(mock_adapter).to receive(:forecast_cache_key).with(location: anything, days: anything).and_return("weather:test:forecast:london:1234")
   end
 
   describe "GET /api/v1/current" do
     context "with valid location" do
-      it "returns current weather data" do
+      it "returns current weather data wrapped in envelope" do
         allow(mock_adapter).to receive(:current_weather).with(location: "London").and_return(forecast)
 
         get "/api/v1/current", params: { location: "London" }
 
         expect(response).to have_http_status(:success)
         json = JSON.parse(response.body)
-        expect(json["location"]).to eq("London")
-        expect(json["conditions"]).to eq("Partly Cloudy")
-        expect(json["temperature"]["celsius"]).to eq(15.5)
+        expect(json["data"]["location"]).to eq("London")
+        expect(json["data"]["conditions"]).to eq("Partly Cloudy")
+        expect(json["data"]["temperature"]["celsius"]).to eq(15.5)
+        expect(json["performance"]).to have_key("cached")
+        expect(json["performance"]).to have_key("duration_ms")
       end
 
       it "handles zipcode format" do
@@ -66,7 +70,7 @@ RSpec.describe "Api::V1::Weather", type: :request do
     context "with invalid location" do
       it "returns not found" do
         allow(mock_adapter).to receive(:current_weather)
-          .and_raise(Weather::BaseAdapter::LocationNotFoundError, "Invalid location")
+          .and_raise(Weather::BaseAdapter::LocationNotFoundError, "city not found")
 
         get "/api/v1/current", params: { location: "InvalidCity123" }
 
@@ -120,16 +124,18 @@ RSpec.describe "Api::V1::Weather", type: :request do
     let(:forecasts) { [ forecast, forecast ] }
 
     context "with valid location" do
-      it "returns forecast data" do
+      it "returns forecast data wrapped in envelope" do
         allow(mock_adapter).to receive(:forecast).with(location: "London", days: 7).and_return(forecasts)
 
         get "/api/v1/forecast", params: { location: "London" }
 
         expect(response).to have_http_status(:success)
         json = JSON.parse(response.body)
-        expect(json).to be_an(Array)
-        expect(json.length).to eq(2)
-        expect(json.first["location"]).to eq("London")
+        expect(json["data"]).to be_an(Array)
+        expect(json["data"].length).to eq(2)
+        expect(json["data"].first["location"]).to eq("London")
+        expect(json["performance"]).to have_key("cached")
+        expect(json["performance"]).to have_key("duration_ms")
       end
 
       it "accepts days parameter" do
@@ -204,6 +210,16 @@ RSpec.describe "Api::V1::Weather", type: :request do
 
         expect(response).to have_http_status(:service_unavailable)
       end
+    end
+  end
+
+  describe "unknown routes" do
+    it "returns JSON 404 for unmatched paths" do
+      get "/this/does/not/exist"
+
+      expect(response).to have_http_status(:not_found)
+      json = JSON.parse(response.body)
+      expect(json["error"]).to eq("Route not found")
     end
   end
 end

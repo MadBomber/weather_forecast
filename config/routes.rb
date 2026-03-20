@@ -12,6 +12,6 @@ Rails.application.routes.draw do
     end
   end
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Catch-all: return JSON 404 for unknown routes instead of Rails HTML error page
+  match "*path", to: "application#not_found", via: :all
 end
