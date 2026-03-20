@@ -92,18 +92,36 @@ module Weather
       params
     end
 
-    # Make HTTP request to OpenWeatherMap API
+    # Make HTTP request to OpenWeatherMap API.
+    # Under Falcon's fiber scheduler (Ruby 3.x + io-event), Net::HTTP socket
+    # operations yield the fiber automatically — no additional async client needed.
+    # See ADR-0013 for the full rationale.
     def make_request(url, params)
       uri = URI(url)
       uri.query = URI.encode_www_form(params)
 
       debug_me { [ :uri ] }
 
-      response = Net::HTTP.get_response(uri)
+      response = perform_get(uri)
 
-      debug_me { [ :response_code ] }
+      debug_me { [:response] }
 
       handle_response(response)
+    end
+
+    # Execute the GET request. Extracted for testability and future HTTP client swaps.
+    def perform_get(uri)
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
+                      open_timeout: http_open_timeout,
+                      read_timeout: http_read_timeout) do |http|
+        http.get("#{uri.path}?#{uri.query}")
+      end
+    rescue Net::OpenTimeout
+      raise ApiError, "Connection to weather service timed out"
+    rescue Net::ReadTimeout
+      raise ApiError, "Weather service did not respond in time"
+    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError => e
+      raise ApiError, "Connection failed: #{e.message}"
     end
 
     # Handle API response and errors
@@ -112,19 +130,35 @@ module Weather
       when 200
         JSON.parse(response.body)
       when 404
-        error_data = JSON.parse(response.body) rescue {}
+        error_data = begin
+          JSON.parse(response.body)
+        rescue JSON::ParserError
+          {}
+        end
         raise LocationNotFoundError, error_data["message"] || "Location not found"
       when 429
         raise RateLimitError, "API rate limit exceeded"
       when 401
         raise ApiError, "Invalid API key"
       else
-        error_data = JSON.parse(response.body) rescue {}
+        error_data = begin
+          JSON.parse(response.body)
+        rescue JSON::ParserError
+          {}
+        end
         raise ApiError, error_data["message"] || "API request failed with status #{response.code}"
       end
     rescue JSON::ParserError => e
       debug_me { [ :e ] }
       raise ApiError, "Invalid JSON response from API"
+    end
+
+    def http_open_timeout
+      Integer(ENV.fetch("HTTP_OPEN_TIMEOUT", 5))
+    end
+
+    def http_read_timeout
+      Integer(ENV.fetch("HTTP_READ_TIMEOUT", 10))
     end
 
     # Parse current weather response into Forecast object

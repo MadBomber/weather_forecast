@@ -119,6 +119,33 @@ RSpec.describe Weather::OpenWeatherMapAdapter, type: :service do
           adapter.current_weather(location: "London")
         }.to raise_error(Weather::BaseAdapter::ApiError)
       end
+
+      it "raises ApiError on connection timeout" do
+        stub_request(:get, %r{api.openweathermap.org/data/2.5/weather})
+          .to_raise(Net::OpenTimeout)
+
+        expect {
+          adapter.current_weather(location: "London")
+        }.to raise_error(Weather::BaseAdapter::ApiError, /timed out/)
+      end
+
+      it "raises ApiError on read timeout" do
+        stub_request(:get, %r{api.openweathermap.org/data/2.5/weather})
+          .to_raise(Net::ReadTimeout)
+
+        expect {
+          adapter.current_weather(location: "London")
+        }.to raise_error(Weather::BaseAdapter::ApiError, /did not respond/)
+      end
+
+      it "raises ApiError on connection refused" do
+        stub_request(:get, %r{api.openweathermap.org/data/2.5/weather})
+          .to_raise(Errno::ECONNREFUSED)
+
+        expect {
+          adapter.current_weather(location: "London")
+        }.to raise_error(Weather::BaseAdapter::ApiError, /Connection failed/)
+      end
     end
   end
 
@@ -200,6 +227,26 @@ RSpec.describe Weather::OpenWeatherMapAdapter, type: :service do
   describe "#service_name" do
     it "returns service name" do
       expect(adapter.service_name).to eq("OpenWeatherMap")
+    end
+  end
+
+  describe "HTTP timeout configuration" do
+    it "uses default open timeout of 5 seconds" do
+      expect(adapter.send(:http_open_timeout)).to eq(5)
+    end
+
+    it "uses default read timeout of 10 seconds" do
+      expect(adapter.send(:http_read_timeout)).to eq(10)
+    end
+
+    it "reads open timeout from HTTP_OPEN_TIMEOUT env var" do
+      allow(ENV).to receive(:fetch).with("HTTP_OPEN_TIMEOUT", 5).and_return("3")
+      expect(adapter.send(:http_open_timeout)).to eq(3)
+    end
+
+    it "reads read timeout from HTTP_READ_TIMEOUT env var" do
+      allow(ENV).to receive(:fetch).with("HTTP_READ_TIMEOUT", 10).and_return("15")
+      expect(adapter.send(:http_read_timeout)).to eq(15)
     end
   end
 
