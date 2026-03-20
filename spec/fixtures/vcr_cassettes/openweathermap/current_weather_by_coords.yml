@@ -1,0 +1,24 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.openweathermap.org/data/2.5/weather?appid=<OWM_API_KEY>&units=metric&lat=51.5074&lon=-0.1278
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    body:
+      encoding: UTF-8
+      string: '{"coord":{"lon":-0.1278,"lat":51.5074},"weather":[{"id":803,"main":"Clouds","description":"broken
+        clouds","icon":"04d"}],"base":"stations","main":{"temp":14.8,"feels_like":14.0,"temp_min":13.2,"temp_max":16.5,"pressure":1014,"humidity":75},"visibility":10000,"wind":{"speed":3.5,"deg":210},"clouds":{"all":75},"dt":1728820800,"sys":{"type":2,"id":2075535,"country":"GB","sunrise":1728793742,"sunset":1728833044},"timezone":3600,"id":2643743,"name":"London","cod":200}'
+  recorded_at: 'Sun, 13 Oct 2025 18:00:00 GMT'
+recorded_with: VCR 6.3.1
