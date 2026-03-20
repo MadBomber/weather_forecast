@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::API
+  before_action :authenticate_request
+
   # Rails checks rescue_from handlers in reverse-definition order (last defined = checked first).
   # Define broad handlers first so specific ones take precedence.
 
@@ -26,5 +28,25 @@ class ApplicationController < ActionController::API
 
   def not_found
     render json: { error: "Route not found" }, status: :not_found
+  end
+
+  private
+
+  # Authenticate via X-API-Key header.
+  #
+  # When API_KEYS env var is empty or unset the API is open (development / PoC mode).
+  # Set API_KEYS=key1,key2 in production to require authentication.
+  #
+  # The health-check endpoint (/up) is always public.
+  def authenticate_request
+    return if request.path == "/up"
+
+    valid_keys = ENV.fetch("API_KEYS", "").split(",").map(&:strip).reject(&:empty?)
+    return if valid_keys.empty?
+
+    provided_key = request.headers["X-API-Key"]
+    return if valid_keys.include?(provided_key)
+
+    render json: { error: "Unauthorized. Provide a valid X-API-Key header." }, status: :unauthorized
   end
 end
