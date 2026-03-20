@@ -1,104 +1,159 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 670">
   <defs>
     <style>
-      .component { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; rx: 8; }
-      .api-layer { fill: #312e81; stroke: #6366f1; stroke-width: 2; rx: 8; }
-      .cache { fill: #1e3a3a; stroke: #10b981; stroke-width: 2; rx: 8; }
-      .external { fill: #3a1e1e; stroke: #ef4444; stroke-width: 2; rx: 8; }
-      .text { fill: #e2e8f0; font-family: 'Courier New', monospace; font-size: 14px; text-anchor: middle; }
-      .title { fill: #60a5fa; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; text-anchor: middle; }
-      .arrow { stroke: #64748b; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
-      .cache-arrow { stroke: #10b981; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
-      .external-arrow { stroke: #ef4444; stroke-width: 2; fill: none; marker-end: url(#arrowhead-red); }
-      .label { fill: #94a3b8; font-family: 'Courier New', monospace; font-size: 12px; text-anchor: middle; }
-      .ttl-label { fill: #10b981; font-family: 'Courier New', monospace; font-size: 11px; font-style: italic; }
+      text { font-family: 'Courier New', monospace; }
+      .t-main  { fill: #60a5fa; font-size: 17px; font-weight: bold; text-anchor: middle; }
+      .t-sec   { fill: #93c5fd; font-size: 10px; font-weight: bold; text-anchor: start; }
+      .t-head  { fill: #e2e8f0; font-size: 13px; font-weight: bold; text-anchor: middle; }
+      .t-sub   { fill: #94a3b8; font-size: 11px; text-anchor: middle; }
+      .t-tiny  { fill: #64748b;  font-size: 10px; text-anchor: middle; }
+      .t-ttl   { fill: #34d399; font-size: 11px; font-style: italic; text-anchor: middle; }
+      .t-leg   { fill: #94a3b8; font-size: 11px; text-anchor: start; }
+
+      .b-client { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; }
+      .b-sec    { fill: #140d2e; stroke: #7c3aed; stroke-width: 2; }
+      .b-ssub   { fill: #2e1065; stroke: #a855f7; stroke-width: 1.5; }
+      .b-rails  { fill: #1e1b4b; stroke: #6366f1; stroke-width: 2; }
+      .b-adapt  { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; }
+      .b-cache  { fill: #064e3b; stroke: #10b981; stroke-width: 2; }
+      .b-ext    { fill: #450a0a; stroke: #ef4444; stroke-width: 2; }
+      .b-fut    { fill: #111827; stroke: #374151; stroke-width: 1.5; stroke-dasharray: 6,3; }
+
+      .a-flow  { stroke: #64748b; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+      .a-sec   { stroke: #a855f7; stroke-width: 1.5; fill: none; marker-end: url(#ah-p); }
+      .a-cache { stroke: #10b981; stroke-width: 1.5; fill: none; marker-end: url(#ah-g); }
+      .a-miss  { stroke: #f87171; stroke-width: 1.5; fill: none; stroke-dasharray: 5,3; marker-end: url(#ah-r); }
     </style>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#64748b" />
-    </marker>
-    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
-    </marker>
-    <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
-    </marker>
+    <marker id="ah"   markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#64748b"/></marker>
+    <marker id="ah-p" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#a855f7"/></marker>
+    <marker id="ah-g" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10b981"/></marker>
+    <marker id="ah-r" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f87171"/></marker>
   </defs>
 
-  <!-- Title -->
-  <text x="400" y="30" class="title">WeatherForecast API Architecture</text>
+  <!-- TITLE -->
+  <text x="450" y="27" class="t-main">WeatherForecast API — System Architecture</text>
 
-  <!-- Clients Layer -->
-  <rect x="150" y="60" width="120" height="50" class="component"/>
-  <text x="210" y="90" class="text">Web Clients</text>
+  <!-- LAYER LABELS -->
+  <text x="8"  y="73"  class="t-sec">CLIENTS</text>
+  <text x="8"  y="162" class="t-sec">SECURITY</text>
+  <text x="8"  y="258" class="t-sec">API</text>
+  <text x="8"  y="350" class="t-sec">SERVICES</text>
+  <text x="8"  y="447" class="t-sec">CACHE</text>
+  <text x="8"  y="533" class="t-sec">EXTERNAL</text>
 
-  <rect x="340" y="60" width="120" height="50" class="component"/>
-  <text x="400" y="90" class="text">Mobile Apps</text>
+  <!-- ── CLIENTS ── -->
+  <rect x="80"  y="45" width="140" height="45" rx="6" class="b-client"/>
+  <text x="150" y="67" class="t-head">Web Clients</text>
+  <text x="150" y="82" class="t-sub">HTTP / REST</text>
 
-  <rect x="530" y="60" width="120" height="50" class="component"/>
-  <text x="590" y="90" class="text">IoT Devices</text>
+  <rect x="330" y="45" width="140" height="45" rx="6" class="b-client"/>
+  <text x="400" y="67" class="t-head">Mobile Apps</text>
+  <text x="400" y="82" class="t-sub">iOS / Android</text>
 
-  <!-- API Gateway Layer -->
-  <rect x="250" y="170" width="300" height="60" class="api-layer"/>
-  <text x="400" y="195" class="title">Rails API (Falcon Server)</text>
-  <text x="400" y="215" class="text">Controllers → Services</text>
+  <rect x="580" y="45" width="140" height="45" rx="6" class="b-client"/>
+  <text x="650" y="67" class="t-head">IoT / Scripts</text>
+  <text x="650" y="82" class="t-sub">curl / SDK</text>
 
-  <!-- Weather Adapters -->
-  <rect x="100" y="290" width="200" height="50" class="component"/>
-  <text x="200" y="320" class="text">OpenWeatherMap</text>
-  <text x="200" y="335" class="label">(Primary)</text>
+  <!-- clients → security -->
+  <path d="M 150 90 L 150 118" class="a-flow"/>
+  <path d="M 400 90 L 400 118" class="a-flow"/>
+  <path d="M 650 90 L 650 118" class="a-flow"/>
 
-  <rect x="500" y="290" width="200" height="50" class="component"/>
-  <text x="600" y="320" class="text">NWS Adapter</text>
-  <text x="600" y="335" class="label">(Future)</text>
+  <!-- ── SECURITY LAYER ── -->
+  <rect x="55" y="118" width="775" height="77" rx="6" class="b-sec"/>
+  <text x="440" y="133" class="t-sub" style="fill:#c084fc; font-weight:bold;">Security Middleware</text>
 
-  <!-- Redis Cache -->
-  <rect x="310" y="400" width="180" height="70" class="cache"/>
-  <text x="400" y="425" class="title">Redis Cache</text>
-  <text x="400" y="445" class="ttl-label">TTL: 30 minutes</text>
-  <text x="400" y="460" class="ttl-label">Key: weather:provider:zip:hour</text>
+  <rect x="70"  y="138" width="205" height="44" rx="4" class="b-ssub"/>
+  <text x="172" y="157" class="t-head" style="fill:#c084fc;">rack-cors</text>
+  <text x="172" y="173" class="t-sub">Origin allow-list (CORS_ALLOWED_ORIGINS)</text>
 
-  <!-- External APIs -->
-  <rect x="100" y="520" width="200" height="50" class="external"/>
-  <text x="200" y="545" class="text">OpenWeatherMap API</text>
-  <text x="200" y="560" class="label">(Global Coverage)</text>
+  <rect x="302" y="138" width="205" height="44" rx="4" class="b-ssub"/>
+  <text x="404" y="157" class="t-head" style="fill:#c084fc;">Rack::Attack</text>
+  <text x="404" y="173" class="t-sub">60 rpm / 10 rps burst (configurable)</text>
 
-  <rect x="500" y="520" width="200" height="50" class="external"/>
-  <text x="600" y="545" class="text">National Weather Service</text>
-  <text x="600" y="560" class="label">(US Only, Free)</text>
+  <rect x="534" y="138" width="216" height="44" rx="4" class="b-ssub"/>
+  <text x="642" y="157" class="t-head" style="fill:#c084fc;">API Key Auth</text>
+  <text x="642" y="173" class="t-sub">X-API-Key header  ·  API_KEYS env</text>
 
-  <!-- Arrows from Clients to API -->
-  <path d="M 210 110 L 350 170" class="arrow"/>
-  <path d="M 400 110 L 400 170" class="arrow"/>
-  <path d="M 590 110 L 450 170" class="arrow"/>
+  <!-- security → rails -->
+  <path d="M 440 195 L 440 222" class="a-sec"/>
 
-  <!-- Arrows from API to Adapters -->
-  <path d="M 350 230 L 250 290" class="arrow"/>
-  <text x="285" y="265" class="label">Request</text>
+  <!-- ── RAILS API ── -->
+  <rect x="195" y="222" width="495" height="68" rx="6" class="b-rails"/>
+  <text x="442" y="247" class="t-head" style="fill:#a5b4fc;">Rails 8 API  /  Falcon Server</text>
+  <text x="442" y="264" class="t-sub">Api::V1::WeatherController</text>
+  <text x="442" y="279" class="t-tiny" style="fill:#6366f1;">#current · #forecast · ApplicationController#rescue_from · /up health check</text>
 
-  <path d="M 450 230 L 550 290" class="arrow"/>
-  <text x="515" y="265" class="label">Request</text>
+  <!-- rails → adapters -->
+  <path d="M 310 290 L 215 318" class="a-flow"/>
+  <path d="M 575 290 L 580 318" class="a-flow"/>
 
-  <!-- Arrows from Adapters to Cache -->
-  <path d="M 250 340 L 330 400" class="cache-arrow"/>
-  <text x="275" y="375" class="label">Cache Check</text>
+  <!-- ── ADAPTERS ── -->
+  <rect x="65"  y="318" width="245" height="57" rx="6" class="b-adapt"/>
+  <text x="187" y="340" class="t-head">OpenWeatherMapAdapter</text>
+  <text x="187" y="356" class="t-sub">Weather::BaseAdapter (primary)</text>
+  <text x="187" y="369" class="t-tiny" style="fill:#475569;">current_weather(location:) · forecast(location:, days:)</text>
 
-  <path d="M 550 340 L 470 400" class="cache-arrow"/>
-  <text x="525" y="375" class="label">Cache Check</text>
+  <rect x="495" y="318" width="245" height="57" rx="6" class="b-fut"/>
+  <text x="617" y="340" class="t-head" style="fill:#4b5563;">NWSAdapter</text>
+  <text x="617" y="356" class="t-sub" style="fill:#374151;">Weather::BaseAdapter (future)</text>
+  <text x="617" y="369" class="t-tiny" style="fill:#374151;">US-only · free tier · api.weather.gov</text>
 
-  <!-- Arrows from Adapters to External APIs -->
-  <path d="M 200 340 L 200 520" class="external-arrow"/>
-  <text x="230" y="430" class="label">API Call (on miss)</text>
+  <!-- adapters → cache (green arrows) -->
+  <path d="M 248 375 L 340 408" class="a-cache"/>
+  <path d="M 555 375 L 488 408" class="a-cache"/>
 
-  <path d="M 600 340 L 600 520" class="external-arrow"/>
-  <text x="635" y="430" class="label">API Call (on miss)</text>
+  <!-- adapters → external (cache miss, dashed red) -->
+  <path d="M 110 375 L 110 505" class="a-miss"/>
+  <text x="85"  y="443" class="t-tiny" style="fill:#f87171;">cache</text>
+  <text x="85"  y="455" class="t-tiny" style="fill:#f87171;">miss</text>
 
-  <!-- Legend -->
-  <rect x="20" y="500" width="15" height="15" class="component"/>
-  <text x="45" y="512" class="label" style="text-anchor: start;">Application Components</text>
+  <path d="M 668 375 L 685 505" class="a-miss"/>
+  <text x="714" y="443" class="t-tiny" style="fill:#f87171;">cache</text>
+  <text x="714" y="455" class="t-tiny" style="fill:#f87171;">miss</text>
 
-  <rect x="20" y="525" width="15" height="15" class="cache"/>
-  <text x="45" y="537" class="label" style="text-anchor: start;">Cache Layer</text>
+  <!-- ── CACHE ── -->
+  <rect x="292" y="408" width="302" height="68" rx="6" class="b-cache"/>
+  <text x="443" y="431" class="t-head" style="fill:#34d399;">Redis Cache</text>
+  <text x="443" y="448" class="t-ttl">key: weather:{provider}:{type}:{location}:{hour}</text>
+  <text x="443" y="464" class="t-ttl">current: 15 min (REDIS_TTL_CURRENT) · forecast: 30 min (REDIS_TTL_FORECAST)</text>
 
-  <rect x="20" y="550" width="15" height="15" class="external"/>
-  <text x="45" y="562" class="label" style="text-anchor: start;">External Services</text>
+  <!-- ── EXTERNAL APIs ── -->
+  <rect x="30"  y="505" width="215" height="50" rx="6" class="b-ext"/>
+  <text x="137" y="527" class="t-head" style="fill:#fca5a5;">OpenWeatherMap API</text>
+  <text x="137" y="543" class="t-sub">api.openweathermap.org</text>
+
+  <rect x="560" y="505" width="215" height="50" rx="6" class="b-fut"/>
+  <text x="667" y="527" class="t-head" style="fill:#4b5563;">NWS API (future)</text>
+  <text x="667" y="543" class="t-sub" style="fill:#374151;">api.weather.gov</text>
+
+  <!-- ── LEGEND ── -->
+  <line x1="12" y1="577" x2="858" y2="577" stroke="#1e293b" stroke-width="1"/>
+
+  <rect x="12"  y="587" width="12" height="12" rx="2" class="b-client"/>
+  <text x="30"  y="598" class="t-leg">Client / App</text>
+
+  <rect x="145" y="587" width="12" height="12" rx="2" class="b-ssub"/>
+  <text x="163" y="598" class="t-leg">Security Middleware</text>
+
+  <rect x="320" y="587" width="12" height="12" rx="2" class="b-cache"/>
+  <text x="338" y="598" class="t-leg">Redis Cache</text>
+
+  <rect x="455" y="587" width="12" height="12" rx="2" class="b-ext"/>
+  <text x="473" y="598" class="t-leg">External Service</text>
+
+  <rect x="608" y="587" width="12" height="12" rx="2" class="b-fut"/>
+  <text x="626" y="598" class="t-leg">Planned / Future</text>
+
+  <path d="M 12 620 L 52 620"  class="a-flow"/>
+  <text x="60"  y="624" class="t-leg">Data Flow</text>
+
+  <path d="M 155 620 L 195 620" class="a-cache"/>
+  <text x="203" y="624" class="t-leg">Cache R/W</text>
+
+  <path d="M 305 620 L 345 620" class="a-miss"/>
+  <text x="353" y="624" class="t-leg">Cache Miss → External API</text>
+
+  <path d="M 580 620 L 620 620" class="a-sec"/>
+  <text x="628" y="624" class="t-leg">Security Check</text>
 </svg>

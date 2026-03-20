@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 560">
+  <defs>
+    <style>
+      text { font-family: 'Courier New', monospace; }
+      .t-main  { fill: #60a5fa; font-size: 17px; font-weight: bold; text-anchor: middle; }
+      .t-head  { fill: #e2e8f0; font-size: 13px; font-weight: bold; text-anchor: middle; }
+      .t-sub   { fill: #94a3b8; font-size: 11px; text-anchor: middle; }
+      .t-tiny  { fill: #64748b; font-size: 10px; text-anchor: middle; }
+      .t-label { fill: #60a5fa; font-size: 12px; font-weight: bold; text-anchor: middle; }
+      .t-sec   { fill: #93c5fd; font-size: 11px; font-weight: bold; text-anchor: start; }
+      .t-ttl   { fill: #34d399; font-size: 12px; font-weight: bold; text-anchor: middle; }
+      .t-hit   { fill: #34d399; font-size: 11px; font-weight: bold; text-anchor: middle; }
+      .t-miss  { fill: #f87171; font-size: 11px; font-weight: bold; text-anchor: middle; }
+
+      /* Key segment colors */
+      .seg-ns   { fill: #1e3a5f; stroke: #3b82f6; stroke-width: 1.5; }
+      .seg-prov { fill: #3b1a5f; stroke: #a855f7; stroke-width: 1.5; }
+      .seg-type { fill: #1a4a2e; stroke: #10b981; stroke-width: 1.5; }
+      .seg-loc  { fill: #4a2e1a; stroke: #f97316; stroke-width: 1.5; }
+      .seg-hour { fill: #4a1a1a; stroke: #ef4444; stroke-width: 1.5; }
+
+      /* Boxes */
+      .b-section { fill: #0f172a; stroke: #1e293b; stroke-width: 1.5; }
+      .b-cache   { fill: #064e3b; stroke: #10b981; stroke-width: 2; }
+      .b-current { fill: #1a3a5f; stroke: #3b82f6; stroke-width: 2; }
+      .b-forecast { fill: #3b1a5f; stroke: #a855f7; stroke-width: 2; }
+      .b-svc     { fill: #1e293b; stroke: #64748b; stroke-width: 1.5; }
+      .b-ext     { fill: #450a0a; stroke: #ef4444; stroke-width: 2; }
+      .b-hit     { fill: #064e3b; stroke: #10b981; stroke-width: 1.5; }
+      .b-miss    { fill: #3a1e1e; stroke: #f87171; stroke-width: 1.5; }
+
+      .a-flow  { stroke: #64748b; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+      .a-cache { stroke: #10b981; stroke-width: 1.5; fill: none; marker-end: url(#ah-g); }
+      .a-miss  { stroke: #f87171; stroke-width: 1.5; fill: none; stroke-dasharray: 5,3; marker-end: url(#ah-r); }
+    </style>
+    <marker id="ah"   markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#64748b"/></marker>
+    <marker id="ah-g" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10b981"/></marker>
+    <marker id="ah-r" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f87171"/></marker>
+  </defs>
+
+  <!-- TITLE -->
+  <text x="390" y="28" class="t-main">Caching Strategy — Redis Key Structure &amp; TTL</text>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 1: Cache Key Anatomy -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <text x="20" y="55" class="t-sec">CACHE KEY ANATOMY</text>
+  <rect x="20" y="60" width="740" height="100" rx="6" class="b-section"/>
+
+  <!-- Key segments (visual pill anatomy) -->
+  <!-- Segment boxes y=80, height=30 -->
+  <rect x="35"  y="80" width="105" height="30" rx="4" class="seg-ns"/>
+  <text x="87"  y="100" class="t-head" style="fill:#60a5fa; font-size:14px;">weather</text>
+
+  <text x="145" y="100" class="t-sub" style="fill:#475569; font-size:16px;">:</text>
+
+  <rect x="155" y="80" width="80" height="30" rx="4" class="seg-prov"/>
+  <text x="195" y="100" class="t-head" style="fill:#c084fc; font-size:14px;">owm</text>
+
+  <text x="240" y="100" class="t-sub" style="fill:#475569; font-size:16px;">:</text>
+
+  <rect x="250" y="80" width="110" height="30" rx="4" class="seg-type"/>
+  <text x="305" y="100" class="t-head" style="fill:#34d399; font-size:14px;">current</text>
+
+  <text x="365" y="100" class="t-sub" style="fill:#475569; font-size:16px;">:</text>
+
+  <rect x="375" y="80" width="140" height="30" rx="4" class="seg-loc"/>
+  <text x="445" y="100" class="t-head" style="fill:#fb923c; font-size:14px;">{location}</text>
+
+  <text x="520" y="100" class="t-sub" style="fill:#475569; font-size:16px;">:</text>
+
+  <rect x="530" y="80" width="215" height="30" rx="4" class="seg-hour"/>
+  <text x="637" y="100" class="t-head" style="fill:#fca5a5; font-size:14px;">{hour_bucket}</text>
+
+  <!-- Segment labels -->
+  <text x="87"  y="125" class="t-tiny" style="fill:#3b82f6;">namespace</text>
+  <text x="195" y="125" class="t-tiny" style="fill:#a855f7;">provider</text>
+  <text x="305" y="125" class="t-tiny" style="fill:#10b981;">type</text>
+  <text x="445" y="125" class="t-tiny" style="fill:#f97316;">city/zip/coords</text>
+  <text x="637" y="125" class="t-tiny" style="fill:#ef4444;">Time.current.to_i / 3600</text>
+
+  <!-- Example -->
+  <text x="390" y="148" class="t-tiny" style="fill:#475569;">example: weather:owm:current:london:482450  (auto-expires each hour cycle)</text>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 2: TTL Tiers -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <text x="20" y="183" class="t-sec">TTL TIERS</text>
+  <rect x="20"  y="188" width="358" height="100" rx="6" class="b-current"/>
+  <text x="199" y="213" class="t-head" style="fill:#93c5fd;">Current Weather</text>
+  <text x="199" y="232" class="t-sub">type segment: current</text>
+  <text x="199" y="252" class="t-ttl">TTL: 900 seconds (15 minutes)</text>
+  <text x="199" y="268" class="t-tiny" style="fill:#3b82f6;">env: REDIS_TTL_CURRENT=900</text>
+  <text x="199" y="281" class="t-tiny" style="fill:#475569;">conditions change quickly — shorter window</text>
+
+  <rect x="402" y="188" width="358" height="100" rx="6" class="b-forecast"/>
+  <text x="581" y="213" class="t-head" style="fill:#c084fc;">5-Day Forecast</text>
+  <text x="581" y="232" class="t-sub">type segment: forecast</text>
+  <text x="581" y="252" class="t-ttl" style="fill:#c084fc;">TTL: 1800 seconds (30 minutes)</text>
+  <text x="581" y="268" class="t-tiny" style="fill:#a855f7;">env: REDIS_TTL_FORECAST=1800</text>
+  <text x="581" y="281" class="t-tiny" style="fill:#475569;">forecasts are stable — longer window</text>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 3: Hit/Miss Decision Flow -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <text x="20" y="315" class="t-sec">CACHE HIT / MISS FLOW</text>
+
+  <!-- Service box -->
+  <rect x="285" y="320" width="210" height="40" rx="6" class="b-svc"/>
+  <text x="390" y="338" class="t-head">WeatherController</text>
+  <text x="390" y="352" class="t-sub">#current or #forecast</text>
+
+  <path d="M 390 360 L 390 380" class="a-flow"/>
+
+  <!-- Cache exist? -->
+  <rect x="255" y="380" width="270" height="40" rx="6" class="b-cache"/>
+  <text x="390" y="399" class="t-head" style="fill:#34d399;">Rails.cache.exist?(cache_key)</text>
+  <text x="390" y="413" class="t-tiny" style="fill:#10b981;">Redis HEXISTS — O(1) lookup</text>
+
+  <!-- HIT / MISS labels -->
+  <text x="178" y="438" class="t-hit">← HIT (cached)</text>
+  <text x="548" y="438" class="t-miss">MISS (expired/new) →</text>
+
+  <!-- HIT arrow -->
+  <path d="M 320 420 L 178 450" class="a-cache"/>
+  <!-- MISS arrow -->
+  <path d="M 460 420 L 572 450" class="a-miss"/>
+
+  <!-- HIT box -->
+  <rect x="55"  y="450" width="245" height="55" rx="6" class="b-hit"/>
+  <text x="177" y="472" class="t-head" style="fill:#34d399;">Return Cached Value</text>
+  <text x="177" y="487" class="t-sub">Rails.cache.read(cache_key)</text>
+  <text x="177" y="500" class="t-tiny" style="fill:#10b981;">performance.cached = true</text>
+
+  <!-- MISS boxes -->
+  <rect x="470" y="450" width="280" height="45" rx="6" class="b-miss"/>
+  <text x="610" y="470" class="t-head" style="fill:#fca5a5;">Call Weather Adapter</text>
+  <text x="610" y="485" class="t-sub">HTTP → parse → Weather::Forecast</text>
+
+  <path d="M 610 495 L 610 513" class="a-miss"/>
+
+  <rect x="470" y="513" width="280" height="45" rx="6" class="b-cache"/>
+  <text x="610" y="533" class="t-head" style="fill:#34d399;">Rails.cache.write(key, val, expires_in:)</text>
+  <text x="610" y="548" class="t-tiny" style="fill:#10b981;">performance.cached = false</text>
+</svg>
