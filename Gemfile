@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gem "rails", "~> 8.0.3"
 gem "bootsnap", require: false
 gem "falcon-rails"
+gem "rack-attack"
 gem "rack-cors"
 gem "redis"
 
