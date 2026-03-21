@@ -16,7 +16,7 @@ FileUtils.chdir APP_ROOT do
   system("bundle check") || system!("bundle install")
 
   puts "\n== Installing git hooks =="
-  system! "git config core.hooksPath .githooks"
+  system! "bundle exec overcommit --install"
 
   # puts "\n== Copying sample files =="
   # unless File.exist?("config/database.yml")
