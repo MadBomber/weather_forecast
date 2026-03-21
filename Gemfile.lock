@@ -145,6 +145,9 @@ GEM
       state_machines (>= 0.100.4)
       zeitwerk (~> 2.7)
     builder (3.3.0)
+    bundler-audit (0.9.3)
+      bundler (>= 1.2.0)
+      thor (~> 1.0)
     childprocess (5.1.0)
       logger (~> 1.5)
     chrono_machines (0.2.0)
@@ -563,6 +566,7 @@ DEPENDENCIES
   bootsnap
   brakeman
   breaker_machines
+  bundler-audit
   claude-on-rails
   debug_me
   dotenv-rails

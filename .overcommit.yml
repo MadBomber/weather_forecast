@@ -6,6 +6,12 @@
 gemfile: Gemfile
 
 PreCommit:
+  Brakeman:
+    enabled: true
+    command: ["bundle", "exec", "brakeman"]
+  BundleAudit:
+    enabled: true
+    update: true
   RuboCop:
     enabled: true
     on_warn: fail

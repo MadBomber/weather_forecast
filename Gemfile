@@ -20,6 +20,7 @@ end
 
 group :development do
   gem "brakeman", require: false
+  gem "bundler-audit", require: false
   gem "claude-on-rails"
   gem "overcommit", require: false
   gem "rubocop-rails"
