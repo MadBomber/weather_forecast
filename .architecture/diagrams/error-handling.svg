@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 580">
+  <defs>
+    <style>
+      text { font-family: 'Courier New', monospace; }
+      .t-main  { fill: #60a5fa; font-size: 17px; font-weight: bold; text-anchor: middle; }
+      .t-sec   { fill: #93c5fd; font-size: 11px; font-weight: bold; text-anchor: start; }
+      .t-head  { fill: #e2e8f0; font-size: 13px; font-weight: bold; text-anchor: middle; }
+      .t-code  { fill: #e2e8f0; font-size: 12px; text-anchor: start; }
+      .t-sub   { fill: #94a3b8; font-size: 11px; text-anchor: start; }
+      .t-tiny  { fill: #64748b; font-size: 10px; text-anchor: middle; }
+      .t-badge { font-size: 13px; font-weight: bold; text-anchor: middle; }
+      .t-note  { fill: #64748b; font-size: 11px; font-style: italic; text-anchor: middle; }
+
+      .b-header  { fill: #1e1b4b; stroke: #6366f1; stroke-width: 2; }
+      .b-err-loc { fill: #2d1f00; stroke: #f59e0b; stroke-width: 1.5; }
+      .b-err-rte { fill: #3a1a1a; stroke: #ef4444; stroke-width: 1.5; }
+      .b-err-api { fill: #2a1a2a; stroke: #a855f7; stroke-width: 1.5; }
+      .b-err-par { fill: #1a2a3a; stroke: #3b82f6; stroke-width: 1.5; }
+      .b-err-std { fill: #1a1a1a; stroke: #374151; stroke-width: 1.5; }
+      .b-rack    { fill: #2e1065; stroke: #a855f7; stroke-width: 2; }
+      .b-route   { fill: #1e293b; stroke: #64748b; stroke-width: 1.5; }
+
+      .badge-404 { fill: #f59e0b; }
+      .badge-429 { fill: #ef4444; }
+      .badge-503 { fill: #a855f7; }
+      .badge-400 { fill: #3b82f6; }
+      .badge-500 { fill: #374151; }
+    </style>
+  </defs>
+
+  <!-- TITLE -->
+  <text x="390" y="28" class="t-main">Error Handling — rescue_from Chain &amp; HTTP Status Codes</text>
+
+  <!-- ── HEADER: ApplicationController ── -->
+  <rect x="20" y="42" width="740" height="48" rx="6" class="b-header"/>
+  <text x="390" y="63" class="t-head" style="fill:#a5b4fc;">ApplicationController  —  rescue_from handlers</text>
+  <text x="390" y="80" class="t-tiny" style="fill:#6366f1;">Rails checks handlers in REVERSE definition order → last-defined = highest priority</text>
+
+  <!-- Column headers -->
+  <text x="35"  y="112" class="t-sec">PRIORITY</text>
+  <text x="95"  y="112" class="t-sec">EXCEPTION CLASS</text>
+  <text x="415" y="112" class="t-sec">HTTP STATUS</text>
+  <text x="530" y="112" class="t-sec">RESPONSE BODY</text>
+  <line x1="20" y1="115" x2="760" y2="115" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- ── ROW 1: LocationNotFoundError (highest priority) ── -->
+  <rect x="20" y="118" width="740" height="50" rx="4" class="b-err-loc"/>
+  <!-- priority number -->
+  <circle cx="55" cy="143" r="14" fill="#f59e0b" opacity="0.2"/>
+  <text x="55" y="148" class="t-badge" style="fill:#f59e0b;">1</text>
+  <!-- exception -->
+  <text x="95"  y="138" class="t-code" style="fill:#fbbf24;">Weather::BaseAdapter::LocationNotFoundError</text>
+  <text x="95"  y="155" class="t-sub">Location string not recognized by provider</text>
+  <!-- badge -->
+  <rect x="410" y="128" width="80" height="28" rx="4" class="badge-404"/>
+  <text x="450" y="147" class="t-badge" style="fill:#fff;">404</text>
+  <!-- response -->
+  <text x="510" y="138" class="t-sub" style="fill:#d1d5db;">&#123; error: "Location not found: {message}" &#125;</text>
+  <text x="510" y="153" class="t-sub" style="fill:#94a3b8;">Not Found</text>
+
+  <!-- ── ROW 2: RateLimitError ── -->
+  <rect x="20" y="172" width="740" height="50" rx="4" class="b-err-rte"/>
+  <circle cx="55" cy="197" r="14" fill="#ef4444" opacity="0.2"/>
+  <text x="55" y="202" class="t-badge" style="fill:#ef4444;">2</text>
+  <text x="95"  y="192" class="t-code" style="fill:#fca5a5;">Weather::BaseAdapter::RateLimitError</text>
+  <text x="95"  y="209" class="t-sub">OWM API rate limit hit (upstream 429)</text>
+  <rect x="410" y="182" width="80" height="28" rx="4" class="badge-429"/>
+  <text x="450" y="201" class="t-badge" style="fill:#fff;">429</text>
+  <text x="510" y="192" class="t-sub" style="fill:#d1d5db;">&#123; error: "API rate limit exceeded…" &#125;</text>
+  <text x="510" y="207" class="t-sub" style="fill:#94a3b8;">Too Many Requests</text>
+
+  <!-- ── ROW 3: ApiError ── -->
+  <rect x="20" y="226" width="740" height="50" rx="4" class="b-err-api"/>
+  <circle cx="55" cy="251" r="14" fill="#a855f7" opacity="0.2"/>
+  <text x="55" y="256" class="t-badge" style="fill:#c084fc;">3</text>
+  <text x="95"  y="246" class="t-code" style="fill:#d8b4fe;">Weather::BaseAdapter::ApiError</text>
+  <text x="95"  y="263" class="t-sub">Provider returned non-200 / network failure</text>
+  <rect x="410" y="236" width="80" height="28" rx="4" class="badge-503"/>
+  <text x="450" y="255" class="t-badge" style="fill:#fff;">503</text>
+  <text x="510" y="246" class="t-sub" style="fill:#d1d5db;">&#123; error: "Weather service unavailable…" &#125;</text>
+  <text x="510" y="261" class="t-sub" style="fill:#94a3b8;">Service Unavailable</text>
+
+  <!-- ── ROW 4: ParameterMissing ── -->
+  <rect x="20" y="280" width="740" height="50" rx="4" class="b-err-par"/>
+  <circle cx="55" cy="305" r="14" fill="#3b82f6" opacity="0.2"/>
+  <text x="55" y="310" class="t-badge" style="fill:#60a5fa;">4</text>
+  <text x="95"  y="300" class="t-code" style="fill:#93c5fd;">ActionController::ParameterMissing</text>
+  <text x="95"  y="317" class="t-sub">Required query param absent (e.g. ?location=)</text>
+  <rect x="410" y="290" width="80" height="28" rx="4" class="badge-400"/>
+  <text x="450" y="309" class="t-badge" style="fill:#fff;">400</text>
+  <text x="510" y="300" class="t-sub" style="fill:#d1d5db;">&#123; error: e.message &#125;</text>
+  <text x="510" y="315" class="t-sub" style="fill:#94a3b8;">Bad Request</text>
+
+  <!-- ── ROW 5: StandardError (catch-all, lowest priority) ── -->
+  <rect x="20" y="334" width="740" height="50" rx="4" class="b-err-std"/>
+  <circle cx="55" cy="359" r="14" fill="#374151" opacity="0.5"/>
+  <text x="55" y="364" class="t-badge" style="fill:#9ca3af;">5</text>
+  <text x="95"  y="354" class="t-code" style="fill:#9ca3af;">StandardError  (catch-all fallback)</text>
+  <text x="95"  y="371" class="t-sub" style="fill:#6b7280;">Any unhandled exception — prevents stack trace leaks</text>
+  <rect x="410" y="344" width="80" height="28" rx="4" class="badge-500"/>
+  <text x="450" y="363" class="t-badge" style="fill:#fff;">500</text>
+  <text x="510" y="354" class="t-sub" style="fill:#d1d5db;">&#123; error: "An unexpected error occurred." &#125;</text>
+  <text x="510" y="369" class="t-sub" style="fill:#94a3b8;">Internal Server Error</text>
+
+  <!-- Divider -->
+  <line x1="20" y1="400" x2="760" y2="400" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- ── ADDITIONAL: Rack::Attack throttle ── -->
+  <text x="20" y="422" class="t-sec">MIDDLEWARE-LEVEL REJECTIONS  (before Rails routing)</text>
+
+  <rect x="20" y="428" width="360" height="60" rx="6" class="b-rack"/>
+  <text x="200" y="450" class="t-head" style="fill:#c084fc;">Rack::Attack — Throttle Exceeded</text>
+  <text x="200" y="466" class="t-sub" style="fill:#a855f7;">60 req/min or 10 req/10s per IP</text>
+  <text x="200" y="480" class="t-sub" style="fill:#94a3b8;">Adds Retry-After header to response</text>
+  <rect x="365" y="438" width="80" height="28" rx="4" class="badge-429"/>
+  <text x="405" y="457" class="t-badge" style="fill:#fff;">429</text>
+  <text x="455" y="450" class="t-sub" style="fill:#d1d5db;">&#123; error: "Rate limit exceeded…",</text>
+  <text x="455" y="465" class="t-sub" style="fill:#d1d5db;">  retry_after: N &#125;</text>
+
+  <!-- ── ADDITIONAL: Catch-all route ── -->
+  <rect x="20" y="500" width="360" height="60" rx="6" class="b-route"/>
+  <text x="200" y="522" class="t-head">Catch-All Route</text>
+  <text x="200" y="538" class="t-sub" style="fill:#94a3b8;">match "*path", to: "application#not_found"</text>
+  <text x="200" y="552" class="t-sub" style="fill:#64748b;">Any unmatched path → application#not_found</text>
+  <rect x="365" y="510" width="80" height="28" rx="4" class="badge-404"/>
+  <text x="405" y="529" class="t-badge" style="fill:#fff;">404</text>
+  <text x="455" y="522" class="t-sub" style="fill:#d1d5db;">&#123; error: "Route not found" &#125;</text>
+
+  <!-- Note at bottom -->
+  <text x="390" y="575" class="t-note">Priority 1 = highest (last defined in source) · Priority 5 = lowest (first defined) · Rails iterates in reverse</text>
+</svg>

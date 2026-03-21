@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 720">
+  <defs>
+    <style>
+      text { font-family: 'Courier New', monospace; }
+      .t-main { fill: #60a5fa; font-size: 17px; font-weight: bold; text-anchor: middle; }
+      .t-step { fill: #93c5fd; font-size: 11px; font-weight: bold; text-anchor: start; }
+      .t-head { fill: #e2e8f0; font-size: 13px; font-weight: bold; text-anchor: middle; }
+      .t-sub  { fill: #94a3b8; font-size: 11px; text-anchor: middle; }
+      .t-tiny { fill: #64748b; font-size: 10px; text-anchor: middle; }
+      .t-lbl  { fill: #60a5fa; font-size: 11px; font-weight: bold; text-anchor: middle; }
+      .t-hit  { fill: #34d399; font-size: 11px; font-weight: bold; text-anchor: middle; }
+      .t-miss { fill: #f87171; font-size: 11px; font-weight: bold; text-anchor: middle; }
+
+      .b-client { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; }
+      .b-sec    { fill: #2e1065; stroke: #a855f7; stroke-width: 2; }
+      .b-ctrl   { fill: #1e1b4b; stroke: #6366f1; stroke-width: 2; }
+      .b-cache  { fill: #064e3b; stroke: #10b981; stroke-width: 2; }
+      .b-adapt  { fill: #1e293b; stroke: #3b82f6; stroke-width: 2; }
+      .b-ext    { fill: #450a0a; stroke: #ef4444; stroke-width: 2; }
+      .b-resp   { fill: #1c2538; stroke: #38bdf8; stroke-width: 2; }
+
+      .a-flow  { stroke: #64748b; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+      .a-sec   { stroke: #a855f7; stroke-width: 1.5; fill: none; marker-end: url(#ah-p); }
+      .a-hit   { stroke: #10b981; stroke-width: 1.5; fill: none; marker-end: url(#ah-g); }
+      .a-miss  { stroke: #f87171; stroke-width: 1.5; fill: none; marker-end: url(#ah-r); }
+      .a-resp  { stroke: #38bdf8; stroke-width: 1.5; fill: none; marker-end: url(#ah-b); }
+    </style>
+    <marker id="ah"   markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#64748b"/></marker>
+    <marker id="ah-p" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#a855f7"/></marker>
+    <marker id="ah-g" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10b981"/></marker>
+    <marker id="ah-r" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f87171"/></marker>
+    <marker id="ah-b" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#38bdf8"/></marker>
+  </defs>
+
+  <!-- TITLE -->
+  <text x="375" y="28" class="t-main">Request Lifecycle — WeatherForecast API</text>
+
+  <!-- ── STEP 1: Client Request ── -->
+  <text x="20" y="60" class="t-step">① Client</text>
+  <rect x="210" y="42" width="330" height="52" rx="6" class="b-client"/>
+  <text x="375" y="65" class="t-head">Client Request</text>
+  <text x="375" y="81" class="t-sub">GET /api/v1/current?location=London</text>
+  <text x="375" y="93" class="t-tiny">Headers: X-API-Key: &lt;key&gt;  ·  Origin: &lt;domain&gt;</text>
+
+  <path d="M 375 94 L 375 115" class="a-sec"/>
+
+  <!-- ── STEP 2: CORS ── -->
+  <text x="20" y="133" class="t-step">② CORS</text>
+  <rect x="210" y="115" width="330" height="40" rx="6" class="b-sec"/>
+  <text x="375" y="133" class="t-head" style="fill:#c084fc;">rack-cors: origin check</text>
+  <text x="375" y="148" class="t-sub" style="fill:#a855f7;">allowed? → continue  ·  blocked? → 403 Forbidden</text>
+
+  <path d="M 375 155 L 375 175" class="a-sec"/>
+
+  <!-- ── STEP 3: Rate Limit ── -->
+  <text x="20" y="193" class="t-step">③ Rate Limit</text>
+  <rect x="210" y="175" width="330" height="40" rx="6" class="b-sec"/>
+  <text x="375" y="193" class="t-head" style="fill:#c084fc;">Rack::Attack: throttle check</text>
+  <text x="375" y="208" class="t-sub" style="fill:#a855f7;">under limit? → continue  ·  exceeded? → 429 + Retry-After</text>
+
+  <path d="M 375 215 L 375 235" class="a-sec"/>
+
+  <!-- ── STEP 4: Auth ── -->
+  <text x="20" y="253" class="t-step">④ Auth</text>
+  <rect x="210" y="235" width="330" height="40" rx="6" class="b-sec"/>
+  <text x="375" y="253" class="t-head" style="fill:#c084fc;">ApplicationController: authenticate_request</text>
+  <text x="375" y="268" class="t-sub" style="fill:#a855f7;">valid key (or open mode)? → continue  ·  invalid? → 401</text>
+
+  <path d="M 375 275 L 375 295" class="a-flow"/>
+
+  <!-- ── STEP 5: Controller ── -->
+  <text x="20" y="313" class="t-step">⑤ Controller</text>
+  <rect x="210" y="295" width="330" height="50" rx="6" class="b-ctrl"/>
+  <text x="375" y="316" class="t-head" style="fill:#a5b4fc;">Api::V1::WeatherController#current</text>
+  <text x="375" y="332" class="t-sub">parse location param  ·  start wall-clock timer</text>
+  <text x="375" y="344" class="t-tiny" style="fill:#6366f1;">build cache_key = weather:owm:current:{location}:{hour}</text>
+
+  <path d="M 375 345 L 375 365" class="a-flow"/>
+
+  <!-- ── STEP 6: Cache Lookup ── -->
+  <text x="20" y="385" class="t-step">⑥ Cache</text>
+  <rect x="195" y="365" width="360" height="50" rx="6" class="b-cache"/>
+  <text x="375" y="386" class="t-head" style="fill:#34d399;">Rails.cache.exist?(cache_key)</text>
+  <text x="375" y="402" class="t-sub">Redis HEXISTS — key present and not expired?</text>
+  <text x="375" y="414" class="t-tiny" style="fill:#10b981;">weather:owm:current:{location}:{hour_bucket}</text>
+
+  <!-- Branch labels -->
+  <text x="188" y="432" class="t-hit">← HIT</text>
+  <text x="540" y="432" class="t-miss">MISS →</text>
+
+  <!-- HIT branch arrow (left) -->
+  <path d="M 280 415 L 148 445" class="a-hit"/>
+
+  <!-- MISS branch arrow (right) -->
+  <path d="M 470 415 L 565 445" class="a-miss"/>
+
+  <!-- ── HIT: Cached Response ── -->
+  <rect x="30" y="445" width="235" height="50" rx="6" class="b-cache"/>
+  <text x="147" y="467" class="t-head" style="fill:#34d399;">Cached Weather::Forecast</text>
+  <text x="147" y="483" class="t-sub">fetched from Redis  ·  no API call</text>
+
+  <!-- HIT → response -->
+  <path d="M 147 495 L 147 615 L 235 615" class="a-hit"/>
+
+  <!-- ── MISS: Adapter Call ── -->
+  <rect x="445" y="445" width="270" height="45" rx="6" class="b-adapt"/>
+  <text x="580" y="466" class="t-head">OpenWeatherMapAdapter</text>
+  <text x="580" y="480" class="t-sub">#current_weather(location:)</text>
+
+  <path d="M 580 490 L 580 508" class="a-miss"/>
+
+  <!-- ── MISS: HTTP Call ── -->
+  <rect x="445" y="508" width="270" height="45" rx="6" class="b-ext"/>
+  <text x="580" y="529" class="t-head" style="fill:#fca5a5;">HTTP GET → OWM API</text>
+  <text x="580" y="543" class="t-sub">api.openweathermap.org/data/2.5/…</text>
+
+  <path d="M 580 553 L 580 571" class="a-miss"/>
+
+  <!-- ── MISS: Parse + Cache Write ── -->
+  <rect x="445" y="571" width="270" height="45" rx="6" class="b-adapt"/>
+  <text x="580" y="591" class="t-head">Parse JSON → Weather::Forecast</text>
+  <text x="580" y="605" class="t-sub">cache.write(key, forecast, expires_in: TTL)</text>
+
+  <!-- MISS → response -->
+  <path d="M 580 616 L 580 650 L 540 650" class="a-flow"/>
+
+  <!-- ── STEP 7: JSON Response ── -->
+  <rect x="190" y="628" width="370" height="60" rx="6" class="b-resp"/>
+  <text x="375" y="650" class="t-head" style="fill:#7dd3fc;">JSON Response</text>
+  <text x="375" y="666" class="t-sub">&#123; data: forecast.to_h,</text>
+  <text x="375" y="680" class="t-sub">  performance: &#123; cached: bool, duration_ms: float &#125; &#125;</text>
+</svg>

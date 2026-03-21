@@ -9,7 +9,7 @@
 
 A Ruby on Rails 8 API application that provides a unified interface for accessing weather forecast data from multiple third-party providers. Built with modern development practices, comprehensive architectural documentation, and designed for scalability.
 
-[![Ruby](https://img.shields.io/badge/Ruby-3.4.6-red.svg)](https://www.ruby-lang.org/)
+[![Ruby](https://img.shields.io/badge/Ruby-4.0.2-red.svg)](https://www.ruby-lang.org/)
 [![Rails](https://img.shields.io/badge/Rails-8.0.3-red.svg)](https://rubyonrails.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -36,7 +36,7 @@ WeatherForecast API is a **weather data aggregation and normalization layer** th
 ### Key Capabilities
 
 - **Unified API**: Single interface for multiple weather data providers
-- **Smart Caching**: Redis-based caching with configurable TTL (30-minute default)
+- **Smart Caching**: Redis-based caching with configurable TTL (15 min for current, 30 min for forecast)
 - **Global Coverage**: Support for worldwide locations via OpenWeatherMap
 - **High Performance**: Sub-200ms response times for cached data
 - **Modern Architecture**: API-only design with frontend/backend separation
@@ -65,8 +65,7 @@ WeatherForecast API is a **weather data aggregation and normalization layer** th
 
 - 🚀 **HTTP/2 Support**: Via Falcon web server
 - 📦 **RESTful API**: Clean, versioned endpoints (`/api/v1/`)
-- 🔄 **Real-time Updates**: Action Cable support for WebSocket connections
-- 🔒 **Secure**: Environment-based credential management
+- 🔒 **Secure**: API key auth, CORS policy, IP-based rate limiting
 - 📊 **Observable**: Structured logging and monitoring ready
 - 🧪 **Well Tested**: Comprehensive RSpec test suite
 
@@ -91,7 +90,7 @@ See [Architecture Documentation](.architecture/) for detailed ADRs.
 
 ### Core Technologies
 
-- **Language**: Ruby 3.4.6
+- **Language**: Ruby 4.0.2
 - **Framework**: Rails 8.0.3 (API-only mode)
 - **Web Server**: Falcon (HTTP/2 support)
 - **Cache**: Redis 5.4+
@@ -113,19 +112,24 @@ See [Architecture Documentation](.architecture/) for detailed ADRs.
 
 ```ruby
 gem 'rails', '~> 8.0.3'
-gem 'falcon-rails', '~> 0.2.4'      # HTTP/2 web server
-gem 'redis', '~> 5.0'               # Caching layer
-gem 'openweathermap', '~> 0.2.3'   # OpenWeatherMap integration
-gem 'nws_openapi_sdk', '~> 0.1.0'  # NWS integration
-gem 'rspec-rails'                    # Testing framework
-gem 'debug_me'                       # Debugging (never use puts!)
+gem 'falcon-rails'      # HTTP/2 web server
+gem 'redis'             # Caching layer
+gem 'rack-attack'       # IP-based rate limiting
+gem 'rack-cors'         # CORS middleware
+gem 'openweathermap'    # OpenWeatherMap HTTP client
+gem 'debug_me'          # Debugging (never use puts!)
+# test group
+gem 'rspec-rails'
+gem 'simplecov'
+gem 'vcr'
+gem 'webmock'
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Ruby 3.4.6 (via rbenv or rvm)
+- Ruby 4.0.2 (via rbenv or rvm)
 - Redis 5.4+ (running locally or remote)
 - OpenWeatherMap API key (free tier: https://openweathermap.org/api)
 - Bundler 2.5+
@@ -177,23 +181,38 @@ gem 'debug_me'                       # Debugging (never use puts!)
 ### Quick Test
 
 ```bash
-# Get current weather for zipcode
-curl http://localhost:3000/api/v1/forecasts/10001
+# Get current weather for a city
+curl http://localhost:3000/api/v1/current?location=London
 
 # Expected response:
 {
-  "location": "10001",
-  "timestamp": "2025-10-10T16:00:00Z",
-  "temperature": {
-    "celsius": 22.5,
-    "fahrenheit": 72.5,
-    "kelvin": 295.65
+  "data": {
+    "location": "London",
+    "timestamp": "2025-10-13T18:00:00+01:00",
+    "temperature": {
+      "celsius": 15.3,
+      "fahrenheit": 59.5,
+      "kelvin": 288.45
+    },
+    "conditions": "Clouds",
+    "description": "overcast clouds",
+    "humidity": 72.0,
+    "wind_speed": 4.1,
+    "wind_direction": "SW",
+    "precipitation_chance": 20.0
   },
-  "conditions": "partly cloudy",
-  "humidity": 65.0,
-  "wind_speed": 15.5,
-  "precipitation_chance": 20.0
+  "performance": {
+    "cached": false,
+    "duration_ms": 312.45
+  }
 }
+```
+
+If `API_KEYS` is set in your `.env`, include the header:
+
+```bash
+curl -H "X-API-Key: your_api_key" \
+  http://localhost:3000/api/v1/current?location=London
 ```
 
 ## Utility Scripts
@@ -400,76 +419,129 @@ Production: https://your-domain.com
 
 ### Endpoints
 
+All endpoints accept an optional `X-API-Key` header when `API_KEYS` is configured.
+
 #### Get Current Weather
 
 ```http
-GET /api/v1/forecasts/:location
+GET /api/v1/current?location=<location>
 ```
 
 **Parameters:**
-- `location` (required): Zipcode, city name, or "lat,lon" coordinates
+- `location` (required): City name, zip code, or `"lat,lon"` coordinates
 
 **Example Requests:**
 ```bash
-# By zipcode
-curl http://localhost:3000/api/v1/forecasts/10001
+# By city name
+curl http://localhost:3000/api/v1/current?location=London
 
-# By city
-curl http://localhost:3000/api/v1/forecasts/New%20York
+# By zip code
+curl http://localhost:3000/api/v1/current?location=10001
 
 # By coordinates
-curl http://localhost:3000/api/v1/forecasts/40.7128,-74.0060
+curl http://localhost:3000/api/v1/current?location=40.7128,-74.0060
 ```
 
 **Response:**
 ```json
 {
-  "location": "10001",
-  "timestamp": "2025-10-10T16:00:00Z",
-  "temperature": {
-    "celsius": 22.5,
-    "fahrenheit": 72.5,
-    "kelvin": 295.65
+  "data": {
+    "location": "London",
+    "timestamp": "2025-10-13T18:00:00+01:00",
+    "temperature": {
+      "celsius": 15.3,
+      "fahrenheit": 59.5,
+      "kelvin": 288.45
+    },
+    "conditions": "Clouds",
+    "description": "overcast clouds",
+    "humidity": 72.0,
+    "wind_speed": 4.1,
+    "wind_direction": "SW",
+    "precipitation_chance": 20.0
   },
-  "conditions": "partly cloudy",
-  "humidity": 65.0,
-  "wind_speed": 15.5,
-  "wind_direction": "NW",
-  "precipitation_chance": 20.0,
-  "description": "Partly cloudy skies throughout the day"
+  "performance": {
+    "cached": true,
+    "duration_ms": 1.96
+  }
 }
 ```
 
-**Error Responses:**
+#### Get 5-Day Forecast
+
+```http
+GET /api/v1/forecast?location=<location>&days=<1-5>
+```
+
+**Parameters:**
+- `location` (required): City name, zip code, or `"lat,lon"` coordinates
+- `days` (optional): Number of days 1–5 (default: 5)
+
+**Example Request:**
+```bash
+curl "http://localhost:3000/api/v1/forecast?location=London&days=3"
+```
+
+**Response:**
 ```json
-// 404 Not Found
 {
-  "error": "Location not found",
-  "message": "The specified location could not be found"
+  "data": [
+    {
+      "location": "London",
+      "timestamp": "2025-10-13T18:00:00+01:00",
+      "temperature": { "celsius": 15.3, "fahrenheit": 59.5, "kelvin": 288.45 },
+      "conditions": "Clouds",
+      "description": "overcast clouds",
+      "humidity": 72.0,
+      "wind_speed": 4.1
+    }
+  ],
+  "performance": {
+    "cached": false,
+    "duration_ms": 287.12
+  }
 }
+```
 
-// 429 Rate Limited
-{
-  "error": "Rate limit exceeded",
-  "message": "Too many requests. Please try again later."
-}
+#### Health Check
 
-// 500 Server Error
-{
-  "error": "Internal server error",
-  "message": "An unexpected error occurred"
-}
+```http
+GET /up
+```
+
+Returns `200 OK` — always public, bypasses API key auth.
+
+#### Error Responses
+
+```json
+// 400 Bad Request — missing required parameter
+{ "error": "param is missing or the value is empty: location" }
+
+// 401 Unauthorized — invalid or missing API key
+{ "error": "Unauthorized. Provide a valid X-API-Key header." }
+
+// 404 Not Found — location not found
+{ "error": "Location not found: Atlantis" }
+
+// 429 Too Many Requests — rate limit exceeded
+{ "error": "Rate limit exceeded. Please try again later.", "retry_after": 60 }
+
+// 503 Service Unavailable — weather provider error
+{ "error": "Weather service unavailable. Please try again later." }
 ```
 
 ### Caching
 
-All weather data is cached in Redis with a **30-minute TTL** per location. Subsequent requests for the same location within 30 minutes return cached data instantly.
+Current weather is cached for **15 minutes** (`REDIS_TTL_CURRENT`).
+Forecasts are cached for **30 minutes** (`REDIS_TTL_FORECAST`).
 
 **Cache Key Format:**
 ```
-weather:openweathermap:10001:123456
-         ^provider      ^loc   ^hour_bucket
+weather:{provider}:{type}:{location}:{hour_bucket}
+   e.g. weather:owm:current:london:482450
 ```
+
+The `hour_bucket` is `Time.current.to_i / 3600` — data auto-expires each rolling hour.
 
 ## Development
 
@@ -695,24 +767,17 @@ docker run -p 3000:3000 \
 
 ### Docker Compose
 
-```yaml
-version: '3.8'
-services:
-  web:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - OPENWEATHERMAP_API_KEY=${OPENWEATHERMAP_API_KEY}
-    depends_on:
-      - redis
+A `docker-compose.yml` is included that starts both the Rails app and Redis:
 
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
+```bash
+cp .env.example .env
+# Edit .env — add OPENWEATHERMAP_API_KEY and SECRET_KEY_BASE
+docker compose up
+curl http://localhost:3000/api/v1/current?location=London
 ```
+
+The `web` service builds from the production `Dockerfile` (Falcon on port 80, mapped to 3000).
+Redis uses `redis:7-alpine` with a healthcheck; the web service waits until Redis is healthy.
 
 ## Architecture Decisions
 
@@ -720,48 +785,24 @@ This project uses **Architecture Decision Records (ADRs)** to document significa
 
 | ADR | Title | Key Decision |
 |-----|-------|-------------|
-| [ADR-0001](.architecture/decisions/adrs/0001-use-redis-for-caching.md) | Use Redis for Caching | Redis with 30-min TTL for zipcode-based caching |
+| [ADR-0001](.architecture/decisions/adrs/0001-use-redis-for-caching.md) | Use Redis for Caching | Redis with configurable TTL for location-based caching |
 | [ADR-0002](.architecture/decisions/adrs/0002-api-only-rails-application.md) | API-Only Rails Application | Frontend/backend separation |
-| [ADR-0003](.architecture/decisions/adrs/0003-use-falcon-web-server.md) | Use Falcon Web Server | Fiber-based HTTP/2 server for learning |
+| [ADR-0003](.architecture/decisions/adrs/0003-use-falcon-web-server.md) | Use Falcon Web Server | Fiber-based HTTP/2 server |
 | [ADR-0004](.architecture/decisions/adrs/0004-choose-openweathermap-as-primary-provider.md) | OpenWeatherMap as Primary | Global coverage over US-only NWS |
 | [ADR-0005](.architecture/decisions/adrs/0005-no-database-for-initial-implementation.md) | No Database Initially | Redis sufficient for PoC stage |
 | [ADR-0006](.architecture/decisions/adrs/0006-use-rspec-for-testing.md) | Use RSpec for Testing | Scales better for expected project growth |
 | [ADR-0007](.architecture/decisions/adrs/0007-allow-ai-coding-agents.md) | Allow AI Coding Agents | Claude Code recommended for development |
-| [ADR-0008](.architecture/decisions/adrs/0008-conventional-commits.md) | Conventional Commits | Standard commit format with aigcm |
-| [ADR-0009](.architecture/decisions/adrs/0009-use-environment-variables-for-secrets.md) | Environment Variables for Secrets | Simpler for PoC than encrypted credentials |
+| [ADR-0008](.architecture/decisions/adrs/0008-api-key-authentication.md) | API Key Authentication | Env-var key list, no database required |
+| [ADR-0009](.architecture/decisions/adrs/0009-rate-limiting.md) | Rate Limiting | Rack::Attack — 60 rpm / 10 rps burst per IP |
+| [ADR-0010](.architecture/decisions/adrs/0010-cors-configuration.md) | CORS Configuration | rack-cors with env-configurable origin allow-list |
+| [ADR-0011](.architecture/decisions/adrs/0011-centralized-error-handling.md) | Centralized Error Handling | `rescue_from` in ApplicationController, catch-all route |
+| [ADR-0012](.architecture/decisions/adrs/0012-docker-compose-development.md) | Docker Compose for Dev | Single `docker compose up` starts web + Redis |
 
 **Full Documentation**: See [.architecture/](.architecture/) directory
 
 ## Contributing
 
-### Getting Started
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feat/amazing-feature`)
-3. Make your changes
-4. Write tests (maintain >80% coverage)
-5. Use conventional commits (`feat(scope): description`)
-6. Push to your fork
-7. Open a Pull Request
-
-### Development Workflow
-
-1. **Check existing ADRs** before making architectural changes
-2. **Write tests first** (TDD approach)
-3. **Use debug_me** for debugging (never puts)
-4. **Run RSpec** before committing
-5. **Update documentation** if needed
-6. **Create ADR** for significant decisions
-
-### Code Review Checklist
-
-- [ ] Tests pass (`bundle exec rspec`)
-- [ ] Security check passes (`bundle exec brakeman`)
-- [ ] Code style follows RuboCop
-- [ ] Test coverage maintained (>80%)
-- [ ] Conventional commit format used
-- [ ] Documentation updated
-- [ ] ADR created if needed
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup instructions, testing requirements, VCR cassette guidance, commit conventions, and the PR process.
 
 ## Performance
 
@@ -774,8 +815,9 @@ This project uses **Architecture Decision Records (ADRs)** to document significa
 
 ### Caching Strategy
 
-- **TTL**: 30 minutes for weather data
-- **Key Format**: `weather:{provider}:{location}:{hour_bucket}`
+- **Current TTL**: 15 minutes (`REDIS_TTL_CURRENT=900`)
+- **Forecast TTL**: 30 minutes (`REDIS_TTL_FORECAST=1800`)
+- **Key Format**: `weather:{provider}:{type}:{location}:{hour_bucket}`
 - **Invalidation**: Automatic expiration via TTL
 - **Warming**: Can pre-populate cache for popular locations
 
@@ -798,8 +840,9 @@ Recommended monitoring:
 ### Phase 2: Production Ready
 - [ ] Add NWS adapter (US locations)
 - [ ] Multi-provider fallback
-- [ ] API authentication
-- [ ] Rate limiting per user
+- ✅ API key authentication (ADR-0008)
+- ✅ Rate limiting per IP (ADR-0009)
+- ✅ CORS policy (ADR-0010)
 - [ ] Metrics and monitoring
 
 ### Phase 3: Enhanced Features

@@ -30,3 +30,9 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+# Ignore AI commit message generator temp files.
+.aigcm_msg
+
+# Ignore test coverage reports.
+/coverage

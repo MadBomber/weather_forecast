@@ -3,6 +3,8 @@ source "https://rubygems.org"
 gem "rails", "~> 8.0.3"
 gem "bootsnap", require: false
 gem "falcon-rails"
+gem "rack-attack"
+gem "rack-cors"
 gem "redis"
 
 gem "openweathermap"
@@ -10,6 +12,7 @@ gem "dotenv-rails"
 
 group :development, :test do
   gem "debug_me"
+  gem "aigcm"
 end
 
 group :development do
@@ -21,5 +24,7 @@ end
 
 group :test do
   gem "rspec-rails"
+  gem "simplecov", require: false
+  gem "vcr"
   gem "webmock"
 end
