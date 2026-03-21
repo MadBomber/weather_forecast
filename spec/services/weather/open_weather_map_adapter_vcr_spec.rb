@@ -43,9 +43,10 @@ RSpec.describe Weather::OpenWeatherMapAdapter, :vcr, type: :service do
 
     context "when location is not found", vcr: { cassette_name: "openweathermap/location_not_found" } do
       it "raises LocationNotFoundError" do
+        # The error message is sanitised to prevent leaking upstream OWM messages
         expect {
           adapter.current_weather(location: "InvalidCityXYZ999")
-        }.to raise_error(Weather::BaseAdapter::LocationNotFoundError, /city not found/)
+        }.to raise_error(Weather::BaseAdapter::LocationNotFoundError, /Location not found/)
       end
     end
 

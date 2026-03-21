@@ -7,11 +7,11 @@ RSpec.describe "CORS headers", type: :request do
   let(:origin) { "https://example.com" }
 
   before do
-    allow(Weather::OpenWeatherMapAdapter).to receive(:new).and_return(mock_adapter)
-    allow(mock_adapter).to receive(:current_cache_key).with(location: anything).and_return("test_key")
+    allow(Weather::AdapterFactory).to receive(:build).and_return(mock_adapter)
     allow(mock_adapter).to receive(:current_weather).with(location: anything).and_return(
       Weather::Forecast.new(location: "London", timestamp: Time.current, temperature: { celsius: 15.0 }, conditions: "Clear")
     )
+    allow(mock_adapter).to receive(:last_cache_hit?).and_return(false)
   end
 
   describe "preflight OPTIONS request" do

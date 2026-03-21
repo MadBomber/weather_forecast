@@ -19,9 +19,8 @@ RSpec.describe "Api::V1::Weather", type: :request do
   end
 
   before do
-    allow(Weather::OpenWeatherMapAdapter).to receive(:new).and_return(mock_adapter)
-    allow(mock_adapter).to receive(:current_cache_key).with(location: anything).and_return("weather:test:current:london:1234")
-    allow(mock_adapter).to receive(:forecast_cache_key).with(location: anything, days: anything).and_return("weather:test:forecast:london:1234")
+    allow(Weather::AdapterFactory).to receive(:build).and_return(mock_adapter)
+    allow(mock_adapter).to receive(:last_cache_hit?).and_return(false)
   end
 
   describe "GET /api/v1/current" do
@@ -38,6 +37,16 @@ RSpec.describe "Api::V1::Weather", type: :request do
         expect(json["data"]["temperature"]["celsius"]).to eq(15.5)
         expect(json["performance"]).to have_key("cached")
         expect(json["performance"]).to have_key("duration_ms")
+      end
+
+      it "reflects cache hit status from adapter" do
+        allow(mock_adapter).to receive(:current_weather).with(location: "London").and_return(forecast)
+        allow(mock_adapter).to receive(:last_cache_hit?).and_return(true)
+
+        get "/api/v1/current", params: { location: "London" }
+
+        json = JSON.parse(response.body)
+        expect(json["performance"]["cached"]).to be(true)
       end
 
       it "handles zipcode format" do

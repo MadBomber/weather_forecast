@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "debug_me"
-include DebugMe
-
 module Api
   module V1
     # Weather API controller
@@ -17,19 +14,14 @@ module Api
       # Parameters:
       #   location (required) - City name, zip code, or coordinates (lat,lon)
       def current
-        debug_me { [ :@location ] }
-
         start_time = Time.current
-        cache_key = weather_service.current_cache_key(location: @location)
-        cached = Rails.cache.exist?(cache_key)
-
         forecast = weather_service.current_weather(location: @location)
         duration_ms = ((Time.current - start_time) * 1000).round(2)
 
         render json: {
           data: forecast.to_h,
           performance: {
-            cached: cached,
+            cached: weather_service.last_cache_hit?,
             duration_ms: duration_ms
           }
         }
@@ -42,19 +34,14 @@ module Api
       #   location (required) - City name, zip code, or coordinates (lat,lon)
       #   days (optional) - Number of days to forecast (default: 7, max: 14)
       def forecast
-        debug_me { [ :@location, :@days ] }
-
         start_time = Time.current
-        cache_key = weather_service.forecast_cache_key(location: @location, days: @days)
-        cached = Rails.cache.exist?(cache_key)
-
         forecasts = weather_service.forecast(location: @location, days: @days)
         duration_ms = ((Time.current - start_time) * 1000).round(2)
 
         render json: {
           data: forecasts.map(&:to_h),
           performance: {
-            cached: cached,
+            cached: weather_service.last_cache_hit?,
             duration_ms: duration_ms
           }
         }
@@ -80,9 +67,9 @@ module Api
         end
       end
 
-      # Get the configured weather service adapter
+      # Get the configured weather service adapter (resolved via AdapterFactory)
       def weather_service
-        @weather_service ||= Weather::OpenWeatherMapAdapter.new
+        @weather_service ||= Weather::AdapterFactory.build
       end
     end
   end

@@ -335,7 +335,6 @@ GEM
     nokogiri (1.19.2-x86_64-linux-musl)
       racc (~> 1.4)
     openssl (4.0.1)
-    openweathermap (0.2.3)
     parallel (1.27.0)
     parser (3.3.10.2)
       ast (~> 2.4.1)
@@ -540,7 +539,6 @@ DEPENDENCIES
   debug_me
   dotenv-rails
   falcon-rails
-  openweathermap
   rack-attack
   rack-cors
   rails (~> 8.0.3)

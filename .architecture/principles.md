@@ -137,7 +137,7 @@ This document outlines the core architectural principles that guide the design a
 
 ### Testing with RSpec
 - Follow RSpec best practices
-- Use factories (FactoryBot) over fixtures
+- Use plain Ruby object construction over fixtures (no ActiveRecord; FactoryBot not used)
 - Test behavior, not implementation
 - Keep tests fast and isolated
 - Maintain separate test Redis instance

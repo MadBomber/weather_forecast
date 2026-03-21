@@ -7,7 +7,6 @@ gem "rack-attack"
 gem "rack-cors"
 gem "redis"
 
-gem "openweathermap"
 gem "dotenv-rails"
 
 group :development, :test do

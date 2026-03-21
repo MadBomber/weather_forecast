@@ -8,11 +8,11 @@ RSpec.describe "Rate limiting", type: :request do
   let(:memory_store) { ActiveSupport::Cache::MemoryStore.new }
 
   before do
-    allow(Weather::OpenWeatherMapAdapter).to receive(:new).and_return(mock_adapter)
-    allow(mock_adapter).to receive(:current_cache_key).with(location: anything).and_return("test_key")
+    allow(Weather::AdapterFactory).to receive(:build).and_return(mock_adapter)
     allow(mock_adapter).to receive(:current_weather).with(location: anything).and_return(
       Weather::Forecast.new(location: "London", timestamp: Time.current, temperature: { celsius: 15.0 }, conditions: "Clear")
     )
+    allow(mock_adapter).to receive(:last_cache_hit?).and_return(false)
     # Use a real memory store so throttle counters actually increment
     Rack::Attack.cache.store = memory_store
     memory_store.clear

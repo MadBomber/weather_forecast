@@ -1,26 +1,22 @@
 # frozen_string_literal: true
 
-require "debug_me"
-include DebugMe
-
 module Weather
   # OpenWeatherMap API adapter
   # Integrates with OpenWeatherMap API for weather data
   # API Documentation: https://openweathermap.org/api
   class OpenWeatherMapAdapter < BaseAdapter
     BASE_URL = "https://api.openweathermap.org/data/2.5"
+    # OWM free tier provides at most 5 days of 3-hourly data (40 data points).
+    MAX_FORECAST_DAYS = 5
 
     # Fetch current weather for a location
     # @param location [String] Location identifier (city name, zip code, or coordinates)
     # @return [Weather::Forecast] Current weather forecast
     def current_weather(location:)
-      debug_me { [ :location ] }
-
       cache_key_value = cache_key(location: location, type: :current)
 
-      Rails.cache.fetch(cache_key_value, expires_in: current_ttl) do
-        response = fetch_current_weather(location)
-        parse_current_weather(response)
+      cache_fetch(cache_key_value, expires_in: current_ttl) do
+        parse_current_weather(fetch_current_weather(location))
       end
     end
 
@@ -29,13 +25,10 @@ module Weather
     # @param days [Integer] Number of days to forecast (default: 7)
     # @return [Array<Weather::Forecast>] Array of weather forecasts
     def forecast(location:, days: 7)
-      debug_me { [ :location, :days ] }
+      cache_key_value = cache_key(location: location, type: :forecast, days: days)
 
-      cache_key_value = cache_key(location: location, type: :forecast)
-
-      Rails.cache.fetch(cache_key_value, expires_in: forecast_ttl) do
-        response = fetch_forecast(location, days)
-        parse_forecast(response, days)
+      cache_fetch(cache_key_value, expires_in: forecast_ttl) do
+        parse_forecast(fetch_forecast(location, days), days)
       end
     end
 
@@ -52,22 +45,16 @@ module Weather
     def fetch_current_weather(location)
       url = "#{BASE_URL}/weather"
       params = build_params(location)
-
-      debug_me { [ :url, :params ] }
-
       make_request(url, params)
     end
 
     # Fetch forecast from OpenWeatherMap API
+    # OWM free tier caps at 5 days / 40 data points regardless of cnt sent.
     def fetch_forecast(location, days)
-      # OpenWeatherMap free tier provides 5-day/3-hour forecast
-      # We'll use the forecast endpoint and filter by days
       url = "#{BASE_URL}/forecast"
       params = build_params(location)
-      params[:cnt] = days * 8 # 8 data points per day (every 3 hours)
-
-      debug_me { [ :url, :params ] }
-
+      effective_days = [ days, MAX_FORECAST_DAYS ].min
+      params[:cnt] = effective_days * 8 # 8 three-hourly data points per day
       make_request(url, params)
     end
 
@@ -99,13 +86,7 @@ module Weather
     def make_request(url, params)
       uri = URI(url)
       uri.query = URI.encode_www_form(params)
-
-      debug_me { [ :uri ] }
-
       response = perform_get(uri)
-
-      debug_me { [ :response ] }
-
       handle_response(response)
     end
 
@@ -124,32 +105,26 @@ module Weather
       raise ApiError, "Connection failed: #{e.message}"
     end
 
-    # Handle API response and errors
+    # Handle API response and errors.
+    # Logs upstream details for internal diagnostics but exposes only safe messages to callers.
     def handle_response(response)
       case response.code.to_i
       when 200
         JSON.parse(response.body)
       when 404
-        error_data = begin
-          JSON.parse(response.body)
-        rescue JSON::ParserError
-          {}
-        end
-        raise LocationNotFoundError, error_data["message"] || "Location not found"
+        upstream = safe_parse_json(response.body)["message"]
+        Rails.logger.info("OWM 404: #{upstream}")
+        raise LocationNotFoundError, "Location not found"
       when 429
         raise RateLimitError, "API rate limit exceeded"
       when 401
-        raise ApiError, "Invalid API key"
+        Rails.logger.error("OWM rejected API key (401)")
+        raise ApiError, "Weather service configuration error"
       else
-        error_data = begin
-          JSON.parse(response.body)
-        rescue JSON::ParserError
-          {}
-        end
-        raise ApiError, error_data["message"] || "API request failed with status #{response.code}"
+        Rails.logger.error("OWM unexpected status #{response.code}: #{response.body.to_s.truncate(200)}")
+        raise ApiError, "Weather service temporarily unavailable"
       end
-    rescue JSON::ParserError => e
-      debug_me { [ :e ] }
+    rescue JSON::ParserError
       raise ApiError, "Invalid JSON response from API"
     end
 
@@ -163,8 +138,6 @@ module Weather
 
     # Parse current weather response into Forecast object
     def parse_current_weather(response)
-      debug_me { [ :response ] }
-
       Weather::Forecast.new(
         location: response["name"] || "Unknown",
         timestamp: Time.at(response["dt"]),
@@ -182,8 +155,6 @@ module Weather
 
     # Parse forecast response into array of Forecast objects
     def parse_forecast(response, days)
-      debug_me { [ :response, :days ] }
-
       location_name = response.dig("city", "name") || "Unknown"
 
       # Filter forecasts to requested number of days
@@ -224,23 +195,20 @@ module Weather
       return nil unless weather_id
 
       case weather_id
-      when 200..299 # Thunderstorm
-        80.0
-      when 300..399 # Drizzle
-        60.0
-      when 500..599 # Rain
-        70.0
-      when 600..699 # Snow
-        70.0
-      when 700..799 # Atmosphere (fog, mist, etc.)
-        30.0
-      when 800 # Clear
-        0.0
-      when 801..804 # Clouds
-        20.0
-      else
-        nil
+      when 200..299 then 80.0  # Thunderstorm
+      when 300..399 then 60.0  # Drizzle
+      when 500..599 then 70.0  # Rain
+      when 600..699 then 70.0  # Snow
+      when 700..799 then 30.0  # Atmosphere (fog, mist, etc.)
+      when 800 then 0.0        # Clear
+      when 801..804 then 20.0  # Clouds
       end
+    end
+
+    def safe_parse_json(body)
+      JSON.parse(body.to_s)
+    rescue JSON::ParserError
+      {}
     end
   end
 end
