@@ -19,7 +19,7 @@ Thank you for your interest in contributing. This guide covers everything you ne
 
 ### Prerequisites
 
-- Ruby 3.4.8 (via rbenv, rvm, or mise)
+- Ruby 4.0.2 (via rbenv, rvm, or mise)
 - Redis 7+ running locally
 - An [OpenWeatherMap API key](https://openweathermap.org/api) (free tier is sufficient)
 - Bundler 2.5+

@@ -2,7 +2,7 @@
 
 A Ruby on Rails 8 API application that provides a unified interface for accessing weather forecast data from multiple third-party providers. Built with modern development practices, comprehensive architectural documentation, and designed for scalability.
 
-[![Ruby](https://img.shields.io/badge/Ruby-3.4.8-red.svg)](https://www.ruby-lang.org/)
+[![Ruby](https://img.shields.io/badge/Ruby-4.0.2-red.svg)](https://www.ruby-lang.org/)
 [![Rails](https://img.shields.io/badge/Rails-8.0.3-red.svg)](https://rubyonrails.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -83,7 +83,7 @@ See [Architecture Documentation](.architecture/) for detailed ADRs.
 
 ### Core Technologies
 
-- **Language**: Ruby 3.4.8
+- **Language**: Ruby 4.0.2
 - **Framework**: Rails 8.0.3 (API-only mode)
 - **Web Server**: Falcon (HTTP/2 support)
 - **Cache**: Redis 5.4+
@@ -122,7 +122,7 @@ gem 'webmock'
 
 ### Prerequisites
 
-- Ruby 3.4.8 (via rbenv or rvm)
+- Ruby 4.0.2 (via rbenv or rvm)
 - Redis 5.4+ (running locally or remote)
 - OpenWeatherMap API key (free tier: https://openweathermap.org/api)
 - Bundler 2.5+
