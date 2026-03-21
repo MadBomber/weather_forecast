@@ -201,7 +201,7 @@ end
 
 header("Demo 1 · Current weather — London (cache miss)")
 
-response = fetch("current", location: "London")
+response = fetch("current", { location: "London" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -218,7 +218,7 @@ header("Demo 2 · Current weather — London (cache hit)")
 puts "  Repeating the same request — should be served from Redis cache."
 puts
 
-response = fetch("current", location: "London")
+response = fetch("current", { location: "London" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -233,7 +233,7 @@ end
 
 header("Demo 3 · Current weather — Tokyo")
 
-response = fetch("current", location: "Tokyo")
+response = fetch("current", { location: "Tokyo" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -250,7 +250,7 @@ header("Demo 4 · Current weather by coordinates (New York City)")
 puts "  Using lat/lon: 40.7128,-74.0060"
 puts
 
-response = fetch("current", location: "40.7128,-74.0060")
+response = fetch("current", { location: "40.7128,-74.0060" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -265,7 +265,7 @@ end
 
 header("Demo 5 · 3-day forecast — Paris")
 
-response = fetch("forecast", location: "Paris", days: 3)
+response = fetch("forecast", { location: "Paris", days: 3 })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
