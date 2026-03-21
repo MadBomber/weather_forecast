@@ -95,7 +95,7 @@ def build_request(path, params = {})
   req       = Net::HTTP::Get.new(uri)
   req["Accept"]    = "application/json"
   req["X-API-Key"] = API_KEY if API_KEY && !API_KEY.empty?
-  [uri, req]
+  [ uri, req ]
 end
 
 def fetch(path, params = {})
