@@ -45,6 +45,13 @@ Rails.logger = ActiveSupport::Logger.new(Rails.root.join("log/test.log"))
 #   abort e.to_s.strip
 # end
 RSpec.configure do |config|
+  # Reset all circuit breaker state between examples so tests are independent.
+  # registry.clear only removes WeakRef tracking; calling reset on each circuit
+  # also resets the state machine and failure counters to their initial state.
+  config.after do
+    BreakerMachines.registry.all_circuits.compact.each(&:reset)
+  end
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   # config.fixture_paths = [
   #   Rails.root.join('spec/fixtures')

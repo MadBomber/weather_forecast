@@ -6,6 +6,7 @@ gem "falcon-rails"
 gem "rack-attack"
 gem "rack-cors"
 gem "redis"
+gem "breaker_machines"
 
 gem "dotenv-rails"
 
