@@ -168,7 +168,7 @@ else
   # CONSOLE_LEVEL=info tells the Console gem (brought in by falcon-rails) to
   # forward info-level messages; its default is warn, which would silence the
   # weather.current / weather.forecast structured log events.
-  unless system({"RAILS_LOG_LEVEL" => "info", "CONSOLE_LEVEL" => "info"}, "bash", start_script, chdir: PROJECT)
+  unless system({ "RAILS_LOG_LEVEL" => "info", "CONSOLE_LEVEL" => "info" }, "bash", start_script, chdir: PROJECT)
     abort "  ERROR: bin/start.sh failed — check log/server.log"
   end
 
