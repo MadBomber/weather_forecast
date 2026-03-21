@@ -18,6 +18,23 @@ require "action_controller/railtie"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# Ruby 4.0 removed the implicit Hash-to-keyword-arguments conversion.
+# activesupport 8.0.4 calls ConnectionPool.new(options_hash) but
+# connection_pool 3.0.2 now requires keyword args only, causing an
+# ArgumentError at boot.  Patch ConnectionPool.new to accept both forms
+# so the existing gem works until an upstream fix is released.
+if RUBY_VERSION >= "4.0"
+  class ConnectionPool
+    class << self
+      prepend(Module.new do
+        def new(options = nil, **kwargs, &block)
+          options.is_a?(Hash) ? super(**options, **kwargs, &block) : super(**kwargs, &block)
+        end
+      end)
+    end
+  end
+end
+
 module WeatherForecast
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
