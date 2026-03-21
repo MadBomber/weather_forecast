@@ -5,7 +5,20 @@ require "rails_helper"
 RSpec.describe "Rate limiting", type: :request do
   let(:mock_adapter) { instance_double(Weather::OpenWeatherMapAdapter) }
   let(:ip) { "1.2.3.4" }
-  let(:memory_store) { ActiveSupport::Cache::MemoryStore.new }
+
+  # Initialise a single MemoryStore once for the whole describe block.
+  # Per-example store creation (let + before) can be unreliable in CI with
+  # eager loading (CI=true) because of the interaction between RSpec's lazy
+  # let evaluation and before-hook execution order.  Using before(:context)
+  # guarantees the store exists and is assigned before any example runs.
+  before(:context) do
+    @rate_limit_store = ActiveSupport::Cache::MemoryStore.new
+    Rack::Attack.cache.store = @rate_limit_store
+  end
+
+  after(:context) do
+    Rack::Attack.cache.store = Rails.cache
+  end
 
   before do
     allow(Weather::AdapterFactory).to receive(:build).and_return(mock_adapter)
@@ -13,13 +26,12 @@ RSpec.describe "Rate limiting", type: :request do
       Weather::Forecast.new(location: "London", timestamp: Time.current, temperature: { celsius: 15.0 }, conditions: "Clear")
     )
     allow(mock_adapter).to receive(:last_cache_hit?).and_return(false)
-    # Use a real memory store so throttle counters actually increment
-    Rack::Attack.cache.store = memory_store
-    memory_store.clear
+    # Clear counters and re-assert the store (other tests may reset it between examples).
+    @rate_limit_store.clear
+    Rack::Attack.cache.store = @rate_limit_store
   end
 
   after do
-    # Restore Rails.cache (null_store in test env) after each example
     Rack::Attack.cache.store = Rails.cache
   end
 
