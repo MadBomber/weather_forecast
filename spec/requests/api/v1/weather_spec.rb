@@ -39,6 +39,37 @@ RSpec.describe "Api::V1::Weather", type: :request do
         expect(json["performance"]).to have_key("duration_ms")
       end
 
+      it "emits a structured log line including location, cache status, and duration" do
+        allow(mock_adapter).to receive(:current_weather).with(location: "London").and_return(forecast)
+
+        expect(Rails.logger).to receive(:info)
+          .with(match(/weather\.current/))
+          .and_call_original
+
+        get "/api/v1/current", params: { location: "London" }
+      end
+
+      it "includes location in the structured log" do
+        allow(mock_adapter).to receive(:current_weather).with(location: "Tokyo").and_return(forecast)
+
+        expect(Rails.logger).to receive(:info)
+          .with(match(/location="Tokyo"/))
+          .and_call_original
+
+        get "/api/v1/current", params: { location: "Tokyo" }
+      end
+
+      it "includes cache status in the structured log" do
+        allow(mock_adapter).to receive(:current_weather).with(location: "London").and_return(forecast)
+        allow(mock_adapter).to receive(:last_cache_hit?).and_return(true)
+
+        expect(Rails.logger).to receive(:info)
+          .with(match(/cached=true/))
+          .and_call_original
+
+        get "/api/v1/current", params: { location: "London" }
+      end
+
       it "reflects cache hit status from adapter" do
         allow(mock_adapter).to receive(:current_weather).with(location: "London").and_return(forecast)
         allow(mock_adapter).to receive(:last_cache_hit?).and_return(true)
@@ -145,6 +176,16 @@ RSpec.describe "Api::V1::Weather", type: :request do
         expect(json["data"].first["location"]).to eq("London")
         expect(json["performance"]).to have_key("cached")
         expect(json["performance"]).to have_key("duration_ms")
+      end
+
+      it "emits a structured log line including location, days, and cache status" do
+        allow(mock_adapter).to receive(:forecast).with(location: "London", days: 7).and_return(forecasts)
+
+        expect(Rails.logger).to receive(:info)
+          .with(match(/weather\.forecast/))
+          .and_call_original
+
+        get "/api/v1/forecast", params: { location: "London" }
       end
 
       it "accepts days parameter" do
