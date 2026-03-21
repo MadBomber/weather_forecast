@@ -12,6 +12,7 @@ gem "dotenv-rails"
 
 group :development, :test do
   gem "debug_me"
+  gem "aigcm"
 end
 
 group :development do
