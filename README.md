@@ -94,7 +94,7 @@ See [Architecture Documentation](.architecture/) for detailed ADRs.
 - **Framework**: Rails 8.0.3 (API-only mode)
 - **Web Server**: Falcon (HTTP/2 support)
 - **Cache**: Redis 5.4+
-- **Testing**: RSpec with FactoryBot, VCR, WebMock
+- **Testing**: RSpec with VCR, WebMock, SimpleCov
 
 ### Weather Providers
 

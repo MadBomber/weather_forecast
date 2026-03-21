@@ -10,6 +10,14 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 require 'rspec/rails'
 require 'webmock/rspec'
 require_relative 'support/vcr'
+
+# Redirect Rails.logger to log/test.log so structured log output does not
+# interleave with RSpec's progress dots and summary.
+# Specs that assert on log calls use `expect(Rails.logger).to receive(:warn)`
+# — RSpec stubs the call before it reaches the logger, so no output is produced
+# in those cases regardless of this setting.
+FileUtils.mkdir_p(Rails.root.join("log"))
+Rails.logger = ActiveSupport::Logger.new(Rails.root.join("log/test.log"))
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in

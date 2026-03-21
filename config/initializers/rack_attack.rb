@@ -17,6 +17,8 @@ api_rpm   = ENV.fetch("RATE_LIMIT_API_RPM", 60).to_i
 burst_rps = ENV.fetch("RATE_LIMIT_BURST_RPS", 10).to_i
 
 # Sustained rate limit — 60 requests per minute per IP
+# Note: configure config.action_dispatch.trusted_proxies in application.rb for deployments
+# behind a load balancer so that REMOTE_ADDR is set to the real client IP before Rack::Attack runs.
 Rack::Attack.throttle("api/ip/minute", limit: api_rpm, period: 1.minute) do |req|
   req.ip if req.path.start_with?("/api/")
 end

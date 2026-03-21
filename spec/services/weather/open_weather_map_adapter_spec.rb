@@ -108,7 +108,7 @@ RSpec.describe Weather::OpenWeatherMapAdapter, type: :service do
 
         expect {
           adapter.current_weather(location: "London")
-        }.to raise_error(Weather::BaseAdapter::ApiError, /Invalid API key/)
+        }.to raise_error(Weather::BaseAdapter::ApiError, /configuration error/)
       end
 
       it "raises ApiError for 500" do
@@ -195,7 +195,8 @@ RSpec.describe Weather::OpenWeatherMapAdapter, type: :service do
       end
 
       it "caches the result" do
-        cache_key = adapter.send(:cache_key, location: "London", type: :forecast)
+        # cache key now includes days to prevent different-day collisions (issue #54)
+        cache_key = adapter.send(:cache_key, location: "London", type: :forecast, days: 5)
 
         expect(Rails.cache).to receive(:fetch).with(cache_key, expires_in: anything).and_call_original
 
