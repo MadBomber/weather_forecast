@@ -104,7 +104,7 @@ module Weather
 
       response = perform_get(uri)
 
-      debug_me { [:response] }
+      debug_me { [ :response ] }
 
       handle_response(response)
     end
