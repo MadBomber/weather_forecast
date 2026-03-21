@@ -8,6 +8,8 @@ gem "rack-cors"
 gem "redis"
 gem "breaker_machines"
 gem "lumberjack"
+gem "lumberjack_json_device"
+gem "lumberjack_rails"
 
 gem "dotenv-rails"
 

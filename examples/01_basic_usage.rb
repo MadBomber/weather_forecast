@@ -164,7 +164,11 @@ else
   # Run start.sh synchronously so output is visible and exit code is checked.
   # start.sh launches Falcon in the background, sleeps 2 s, and exits non-zero
   # if the process failed to start.
-  unless system("bash", start_script, chdir: PROJECT)
+  # RAILS_LOG_LEVEL=info ensures Rails logger accepts info-level events.
+  # CONSOLE_LEVEL=info tells the Console gem (brought in by falcon-rails) to
+  # forward info-level messages; its default is warn, which would silence the
+  # weather.current / weather.forecast structured log events.
+  unless system({"RAILS_LOG_LEVEL" => "info", "CONSOLE_LEVEL" => "info"}, "bash", start_script, chdir: PROJECT)
     abort "  ERROR: bin/start.sh failed — check log/server.log"
   end
 

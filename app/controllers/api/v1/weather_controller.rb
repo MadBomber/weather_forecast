@@ -16,20 +16,14 @@ module Api
       def current
         start_time = Time.current
         forecast = weather_service.current_weather(location: @location)
-        duration_ms = ((Time.current - start_time) * 1000).round(2)
-        cached = weather_service.last_cache_hit?
-
-        log_weather_event("weather.current",
-                          location: @location,
-                          cached: cached,
-                          duration_ms: duration_ms,
-                          status: 200)
+        @weather_duration_ms = ((Time.current - start_time) * 1000).round(2)
+        @cached = weather_service.last_cache_hit?
 
         render json: {
           data: forecast.to_h,
           performance: {
-            cached: cached,
-            duration_ms: duration_ms
+            cached: @cached,
+            duration_ms: @weather_duration_ms
           }
         }
       end
@@ -43,21 +37,14 @@ module Api
       def forecast
         start_time = Time.current
         forecasts = weather_service.forecast(location: @location, days: @days)
-        duration_ms = ((Time.current - start_time) * 1000).round(2)
-        cached = weather_service.last_cache_hit?
-
-        log_weather_event("weather.forecast",
-                          location: @location,
-                          days: @days,
-                          cached: cached,
-                          duration_ms: duration_ms,
-                          status: 200)
+        @weather_duration_ms = ((Time.current - start_time) * 1000).round(2)
+        @cached = weather_service.last_cache_hit?
 
         render json: {
           data: forecasts.map(&:to_h),
           performance: {
-            cached: cached,
-            duration_ms: duration_ms
+            cached: @cached,
+            duration_ms: @weather_duration_ms
           }
         }
       end
@@ -87,19 +74,15 @@ module Api
         @weather_service ||= Weather::AdapterFactory.build
       end
 
-      # Emit a structured log line for a weather API event.
-      #
-      # With Lumberjack as the logger (production) the attributes become
-      # top-level JSON fields so aggregators can filter on them individually.
-      # With the default Rails text logger (development / test) the attributes
-      # are inlined as key=value pairs in the message string.
-      def log_weather_event(event, **attrs)
-        if Rails.logger.respond_to?(:add_entry)
-          Rails.logger.info(event, attrs)
-        else
-          parts = attrs.map { |k, v| "#{k}=#{v.inspect}" }.join(" ")
-          Rails.logger.info("[#{event}] #{parts}")
-        end
+      # Inject weather-specific fields into the process_action.action_controller
+      # instrumentation payload so they appear in the single structured log entry
+      # emitted by Console::Adapter::Rails::ActionController per request.
+      def append_info_to_payload(payload)
+        super
+        payload[:location]           = @location          if @location
+        payload[:cached]             = @cached             unless @cached.nil?
+        payload[:weather_duration_ms] = @weather_duration_ms if @weather_duration_ms
+        payload[:days]               = @days               if @days
       end
     end
   end

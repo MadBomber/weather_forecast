@@ -38,6 +38,10 @@ Rails.application.configure do
   # Set localhost to be used by links generated in mailer templates.
   # config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
 
+  # Log level defaults to :debug in development.
+  # Override with RAILS_LOG_LEVEL=info (or any level) to reduce noise.
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug")
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 

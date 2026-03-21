@@ -39,35 +39,35 @@ RSpec.describe "Api::V1::Weather", type: :request do
         expect(json["performance"]).to have_key("duration_ms")
       end
 
-      it "emits a structured log line including location, cache status, and duration" do
+      it "adds location to the process_action payload" do
         allow(mock_adapter).to receive(:current_weather).with(location: "London").and_return(forecast)
 
-        expect(Rails.logger).to receive(:info)
-          .with(match(/weather\.current/))
-          .and_call_original
+        payload = {}
+        subscription = ActiveSupport::Notifications.subscribe("process_action.action_controller") do |*args|
+          payload = ActiveSupport::Notifications::Event.new(*args).payload
+        end
 
         get "/api/v1/current", params: { location: "London" }
+
+        expect(payload[:location]).to eq("London")
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
       end
 
-      it "includes location in the structured log" do
-        allow(mock_adapter).to receive(:current_weather).with(location: "Tokyo").and_return(forecast)
-
-        expect(Rails.logger).to receive(:info)
-          .with(match(/location="Tokyo"/))
-          .and_call_original
-
-        get "/api/v1/current", params: { location: "Tokyo" }
-      end
-
-      it "includes cache status in the structured log" do
+      it "adds cache status to the process_action payload" do
         allow(mock_adapter).to receive(:current_weather).with(location: "London").and_return(forecast)
         allow(mock_adapter).to receive(:last_cache_hit?).and_return(true)
 
-        expect(Rails.logger).to receive(:info)
-          .with(match(/cached=true/))
-          .and_call_original
+        payload = {}
+        subscription = ActiveSupport::Notifications.subscribe("process_action.action_controller") do |*args|
+          payload = ActiveSupport::Notifications::Event.new(*args).payload
+        end
 
         get "/api/v1/current", params: { location: "London" }
+
+        expect(payload[:cached]).to be(true)
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
       end
 
       it "reflects cache hit status from adapter" do
@@ -178,14 +178,19 @@ RSpec.describe "Api::V1::Weather", type: :request do
         expect(json["performance"]).to have_key("duration_ms")
       end
 
-      it "emits a structured log line including location, days, and cache status" do
+      it "adds location and days to the process_action payload" do
         allow(mock_adapter).to receive(:forecast).with(location: "London", days: 7).and_return(forecasts)
 
-        expect(Rails.logger).to receive(:info)
-          .with(match(/weather\.forecast/))
-          .and_call_original
+        payload = {}
+        subscription = ActiveSupport::Notifications.subscribe("process_action.action_controller") do |*args|
+          payload = ActiveSupport::Notifications::Event.new(*args).payload
+        end
 
         get "/api/v1/forecast", params: { location: "London" }
+
+        expect(payload).to include(location: "London", days: 7)
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
       end
 
       it "accepts days parameter" do

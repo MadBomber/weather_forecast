@@ -296,6 +296,11 @@ GEM
       nokogiri (>= 1.12.0)
     lumberjack (2.0.5)
       logger
+    lumberjack_json_device (3.0.0)
+      lumberjack (>= 2.0)
+    lumberjack_rails (1.0.1)
+      activesupport (>= 7.1)
+      lumberjack (>= 2.0.3)
     mail (2.9.0)
       logger
       mini_mime (>= 0.1.1)
@@ -556,6 +561,8 @@ DEPENDENCIES
   dotenv-rails
   falcon-rails
   lumberjack
+  lumberjack_json_device
+  lumberjack_rails
   rack-attack
   rack-cors
   rails (~> 8.0.3)
