@@ -6,6 +6,10 @@ gem "falcon-rails"
 gem "rack-attack"
 gem "rack-cors"
 gem "redis"
+gem "breaker_machines"
+gem "lumberjack"
+gem "lumberjack_json_device"
+gem "lumberjack_rails"
 
 gem "dotenv-rails"
 
@@ -16,7 +20,9 @@ end
 
 group :development do
   gem "brakeman", require: false
+  gem "bundler-audit", require: false
   gem "claude-on-rails"
+  gem "overcommit", require: false
   gem "rubocop-rails"
   gem "rubocop-rails-omakase", require: false
 end

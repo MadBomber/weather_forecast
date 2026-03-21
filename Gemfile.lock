@@ -137,7 +137,21 @@ GEM
       msgpack (~> 1.2)
     brakeman (8.0.4)
       racc
+    breaker_machines (0.10.3)
+      activesupport (>= 8.0)
+      chrono_machines (~> 0.2)
+      concurrent-ruby (~> 1.3)
+      rb_sys (~> 0.9)
+      state_machines (>= 0.100.4)
+      zeitwerk (~> 2.7)
     builder (3.3.0)
+    bundler-audit (0.9.3)
+      bundler (>= 1.2.0)
+      thor (~> 1.0)
+    childprocess (5.1.0)
+      logger (~> 1.5)
+    chrono_machines (0.2.0)
+      zeitwerk (~> 2.7)
     claude-code-sdk-ruby (0.1.6)
       async (~> 2)
       logger (~> 1)
@@ -261,6 +275,7 @@ GEM
     hashdiff (1.2.1)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
+    iniparse (1.5.0)
     io-console (0.8.2)
     io-endpoint (0.17.2)
     io-event (1.14.4)
@@ -285,6 +300,13 @@ GEM
     loofah (2.25.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
+    lumberjack (2.0.5)
+      logger
+    lumberjack_json_device (3.0.0)
+      lumberjack (>= 2.0)
+    lumberjack_rails (1.0.1)
+      activesupport (>= 7.1)
+      lumberjack (>= 2.0.3)
     mail (2.9.0)
       logger
       mini_mime (>= 0.1.1)
@@ -335,6 +357,10 @@ GEM
     nokogiri (1.19.2-x86_64-linux-musl)
       racc (~> 1.4)
     openssl (4.0.1)
+    overcommit (0.68.0)
+      childprocess (>= 0.6.3, < 6)
+      iniparse (~> 1.4)
+      rexml (>= 3.3.9)
     parallel (1.27.0)
     parser (3.3.10.2)
       ast (~> 2.4.1)
@@ -407,6 +433,9 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.3.1)
+    rake-compiler-dock (1.11.0)
+    rb_sys (0.9.124)
+      rake-compiler-dock (= 1.11.0)
     rdoc (7.2.0)
       erb
       psych (>= 4.0.0)
@@ -495,6 +524,7 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
+    state_machines (0.100.4)
     string-format (0.2.0)
     stringio (3.2.0)
     thor (1.5.0)
@@ -535,10 +565,16 @@ DEPENDENCIES
   aigcm
   bootsnap
   brakeman
+  breaker_machines
+  bundler-audit
   claude-on-rails
   debug_me
   dotenv-rails
   falcon-rails
+  lumberjack
+  lumberjack_json_device
+  lumberjack_rails
+  overcommit
   rack-attack
   rack-cors
   rails (~> 8.0.3)

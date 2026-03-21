@@ -5,6 +5,34 @@ module Weather
   # Integrates with OpenWeatherMap API for weather data
   # API Documentation: https://openweathermap.org/api
   class OpenWeatherMapAdapter < BaseAdapter
+    include BreakerMachines::DSL
+
+    # Circuit breaker protecting outbound HTTP calls to OpenWeatherMap.
+    #
+    # Opens after 3 network-level failures within 30 seconds, then waits
+    # 30 seconds before allowing a single probe request through (half-open).
+    # Only connection/timeout errors count as failures; valid API error
+    # responses (404, 429, etc.) do not trip the circuit.
+    #
+    # When open, the fallback raises ApiError so the existing rescue_from
+    # in ApplicationController returns HTTP 503 to the caller.
+    circuit :openweathermap do
+      threshold failures: 3, within: 30.seconds
+      reset_after 30.seconds
+      handle Net::OpenTimeout, Net::ReadTimeout,
+             Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError
+      # The fallback is called in two contexts:
+      #   1. Circuit is CLOSED but a failure just occurred (error = original network exception)
+      #   2. Circuit is OPEN and rejecting the call  (error = BreakerMachines::CircuitOpenError)
+      # Re-raise the original network exception in case (1) so the rescue clauses in
+      # perform_get can map it to a descriptive ApiError message.  Only raise the
+      # "circuit open" message in case (2) when the circuit is actually blocking calls.
+      fallback do |error|
+        raise ApiError, "Weather service temporarily unavailable (circuit open)" if error.is_a?(BreakerMachines::CircuitOpenError)
+
+        raise error
+      end
+    end
     BASE_URL = "https://api.openweathermap.org/data/2.5"
     # OWM free tier provides at most 5 days of 3-hourly data (40 data points).
     MAX_FORECAST_DAYS = 5
@@ -90,12 +118,16 @@ module Weather
       handle_response(response)
     end
 
-    # Execute the GET request. Extracted for testability and future HTTP client swaps.
+    # Execute the GET request, wrapped in the :openweathermap circuit breaker.
+    # Network-level exceptions (timeout, refused, reset) are counted as failures.
+    # When the circuit opens the fallback raises ApiError immediately.
     def perform_get(uri)
-      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
-                      open_timeout: http_open_timeout,
-                      read_timeout: http_read_timeout) do |http|
-        http.get("#{uri.path}?#{uri.query}")
+      circuit(:openweathermap).wrap do
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
+                        open_timeout: http_open_timeout,
+                        read_timeout: http_read_timeout) do |http|
+          http.get("#{uri.path}?#{uri.query}")
+        end
       end
     rescue Net::OpenTimeout
       raise ApiError, "Connection to weather service timed out"

@@ -1,0 +1,18 @@
+# Overcommit hook configuration.
+# Run `bundle exec overcommit --install` to activate these hooks.
+# Run `bundle exec overcommit --sign` after editing this file.
+# See https://github.com/sds/overcommit for full documentation.
+
+gemfile: Gemfile
+
+PreCommit:
+  Brakeman:
+    enabled: true
+    command: ["bundle", "exec", "brakeman"]
+  BundleAudit:
+    enabled: true
+    update: true
+  RuboCop:
+    enabled: true
+    on_warn: fail
+    command: ["bundle", "exec", "rubocop"]

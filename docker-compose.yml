@@ -7,7 +7,8 @@ services:
       - .env
     environment:
       REDIS_URL: redis://redis:6379/0
-      RAILS_ENV: production
+      # Defaults to development for local use; CI sets RAILS_ENV=production explicitly.
+      RAILS_ENV: ${RAILS_ENV:-development}
       RAILS_LOG_TO_STDOUT: "true"
     depends_on:
       redis:

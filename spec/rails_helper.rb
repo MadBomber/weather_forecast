@@ -11,13 +11,10 @@ require 'rspec/rails'
 require 'webmock/rspec'
 require_relative 'support/vcr'
 
-# Redirect Rails.logger to log/test.log so structured log output does not
-# interleave with RSpec's progress dots and summary.
-# Specs that assert on log calls use `expect(Rails.logger).to receive(:warn)`
-# — RSpec stubs the call before it reaches the logger, so no output is produced
-# in those cases regardless of this setting.
-FileUtils.mkdir_p(Rails.root.join("log"))
-Rails.logger = ActiveSupport::Logger.new(Rails.root.join("log/test.log"))
+# lumberjack_rails configures Rails.logger as a Lumberjack::Logger in all
+# environments. In test it writes to log/test.log by default, keeping
+# structured output out of RSpec's progress dots.
+# Specs that assert on log calls stub Rails.logger before it reaches the device.
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -45,6 +42,13 @@ Rails.logger = ActiveSupport::Logger.new(Rails.root.join("log/test.log"))
 #   abort e.to_s.strip
 # end
 RSpec.configure do |config|
+  # Reset all circuit breaker state between examples so tests are independent.
+  # registry.clear only removes WeakRef tracking; calling reset on each circuit
+  # also resets the state machine and failure counters to their initial state.
+  config.after do
+    BreakerMachines.registry.all_circuits.compact.each(&:reset)
+  end
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   # config.fixture_paths = [
   #   Rails.root.join('spec/fixtures')

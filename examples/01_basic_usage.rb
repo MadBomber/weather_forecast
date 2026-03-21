@@ -24,10 +24,11 @@ require "uri"
 # Configuration
 # ---------------------------------------------------------------------------
 
-API_BASE  = "http://localhost:3000/api/v1"
-HEALTH    = "http://localhost:3000/up"
-PROJECT   = File.expand_path("..", __dir__)
-PID_FILE  = File.join(PROJECT, "tmp", "pids", "server.pid")
+API_BASE     = "http://localhost:3000/api/v1"
+HEALTH_BASIC = "http://localhost:3000/up"
+HEALTH_DEEP  = "#{API_BASE}/health"
+PROJECT      = File.expand_path("..", __dir__)
+PID_FILE     = File.join(PROJECT, "tmp", "pids", "server.pid")
 
 # Optional: include X-API-Key if the server requires authentication.
 API_KEY = ENV.fetch("API_KEYS", "").split(",").first&.strip
@@ -46,7 +47,7 @@ def header(title)
 end
 
 def server_running?
-  uri  = URI(HEALTH)
+  uri  = URI(HEALTH_BASIC)
   http = Net::HTTP.new(uri.host, uri.port)
   http.open_timeout = 2
   http.read_timeout = 3
@@ -89,17 +90,17 @@ def wait_for_boot(timeout: 30)
   result
 end
 
-def build_request(path, params = {})
+def build_request(path, params = {}, key: API_KEY)
   uri       = URI("#{API_BASE}/#{path}")
   uri.query = URI.encode_www_form(params) unless params.empty?
   req       = Net::HTTP::Get.new(uri)
   req["Accept"]    = "application/json"
-  req["X-API-Key"] = API_KEY if API_KEY && !API_KEY.empty?
+  req["X-API-Key"] = key if key && !key.empty?
   [ uri, req ]
 end
 
-def fetch(path, params = {})
-  uri, req = build_request(path, params)
+def fetch(path, params = {}, key: API_KEY)
+  uri, req = build_request(path, params, key: key)
   Net::HTTP.start(uri.host, uri.port) { |http| http.request(req) }
 end
 
@@ -128,6 +129,18 @@ def print_forecast_day(entry)
   cond = entry["conditions"]
   desc = entry["description"] ? " (#{entry["description"]})" : ""
   puts "    #{ts}  #{temp.ljust(24)} #{cond}#{desc}"
+end
+
+def print_health(json, http_code)
+  status_label = http_code == "200" ? "✓ ok" : "✗ degraded"
+  puts "  Overall status : #{status_label} (HTTP #{http_code})"
+  puts
+
+  json["checks"].each do |name, result|
+    icon = result["ok"] ? "✓" : "✗"
+    line = "  #{icon} #{name.ljust(18)}: #{result["ok"] ? "ok" : result["error"]}"
+    puts line
+  end
 end
 
 # ---------------------------------------------------------------------------
@@ -164,7 +177,11 @@ else
   # Run start.sh synchronously so output is visible and exit code is checked.
   # start.sh launches Falcon in the background, sleeps 2 s, and exits non-zero
   # if the process failed to start.
-  unless system("bash", start_script, chdir: PROJECT)
+  # RAILS_LOG_LEVEL=info ensures Rails logger accepts info-level events.
+  # CONSOLE_LEVEL=info tells the Console gem (brought in by falcon-rails) to
+  # forward info-level messages; its default is warn, which would silence the
+  # weather.current / weather.forecast structured log events.
+  unless system({ "RAILS_LOG_LEVEL" => "info", "CONSOLE_LEVEL" => "info" }, "bash", start_script, chdir: PROJECT)
     abort "  ERROR: bin/start.sh failed — check log/server.log"
   end
 
@@ -184,7 +201,7 @@ end
 
 header("Demo 1 · Current weather — London (cache miss)")
 
-response = fetch("current", location: "London")
+response = fetch("current", { location: "London" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -201,7 +218,7 @@ header("Demo 2 · Current weather — London (cache hit)")
 puts "  Repeating the same request — should be served from Redis cache."
 puts
 
-response = fetch("current", location: "London")
+response = fetch("current", { location: "London" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -216,7 +233,7 @@ end
 
 header("Demo 3 · Current weather — Tokyo")
 
-response = fetch("current", location: "Tokyo")
+response = fetch("current", { location: "Tokyo" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -233,7 +250,7 @@ header("Demo 4 · Current weather by coordinates (New York City)")
 puts "  Using lat/lon: 40.7128,-74.0060"
 puts
 
-response = fetch("current", location: "40.7128,-74.0060")
+response = fetch("current", { location: "40.7128,-74.0060" })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -248,7 +265,7 @@ end
 
 header("Demo 5 · 3-day forecast — Paris")
 
-response = fetch("forecast", location: "Paris", days: 3)
+response = fetch("forecast", { location: "Paris", days: 3 })
 json     = JSON.parse(response.body)
 
 if response.is_a?(Net::HTTPOK)
@@ -275,14 +292,75 @@ puts "  HTTP status : #{response.code}"
 puts "  Error       : #{json["error"]}"
 
 # ---------------------------------------------------------------------------
-# Demo 7 — Health check
+# Demo 7 — Process health check (/up)
 # ---------------------------------------------------------------------------
 
-header("Demo 7 · Health check endpoint (/up)")
+header("Demo 7 · Process health check (/up)")
+puts "  Used by load balancers — only confirms the Rails process is alive."
+puts
 
-uri      = URI(HEALTH)
+uri      = URI(HEALTH_BASIC)
 response = Net::HTTP.get_response(uri)
 puts "  GET /up  →  HTTP #{response.code} #{response.message}"
+
+# ---------------------------------------------------------------------------
+# Demo 8 — Deep health check (/api/v1/health)
+# ---------------------------------------------------------------------------
+
+header("Demo 8 · Deep health check (/api/v1/health)")
+puts "  Probes Redis connectivity and OWM API key configuration."
+puts "  Returns 200 when fully operational, 503 if any dependency is down."
+puts "  No API key required — safe for monitoring systems."
+puts
+
+response = fetch("health")
+json     = JSON.parse(response.body)
+print_health(json, response.code)
+
+# ---------------------------------------------------------------------------
+# Demo 9 — Authentication (when API_KEYS is configured)
+# ---------------------------------------------------------------------------
+
+header("Demo 9 · Authentication")
+
+valid_keys = ENV.fetch("API_KEYS", "").split(",").map(&:strip).reject(&:empty?)
+
+if valid_keys.empty?
+  puts "  API_KEYS is not set — server is running in open mode (no auth required)."
+  puts "  Set API_KEYS=key1,key2 to enable authentication."
+else
+  puts "  API_KEYS is configured — demonstrating auth enforcement."
+  puts
+
+  # Missing key
+  response = fetch("current", { location: "London" }, key: nil)
+  puts "  Missing X-API-Key  →  HTTP #{response.code} #{JSON.parse(response.body)["error"]}"
+  puts "  (Warning logged server-side with IP and path)"
+  puts
+
+  # Invalid key
+  response = fetch("current", { location: "London" }, key: "invalid_key_xxxx")
+  puts "  Invalid X-API-Key  →  HTTP #{response.code} #{JSON.parse(response.body)["error"]}"
+  puts "  (Warning logged server-side with IP, path, and key prefix)"
+  puts
+
+  # Valid key
+  response = fetch("current", { location: "London" }, key: valid_keys.first)
+  puts "  Valid X-API-Key    →  HTTP #{response.code} (authenticated successfully)"
+end
+
+# ---------------------------------------------------------------------------
+# Demo 10 — Configurable adapter (AdapterFactory)
+# ---------------------------------------------------------------------------
+
+header("Demo 10 · Configurable weather adapter")
+puts "  The server resolves its weather provider via the WEATHER_ADAPTER env var."
+puts "  Default: Weather::OpenWeatherMapAdapter"
+puts "  Override: WEATHER_ADAPTER=Weather::SomeOtherAdapter"
+puts
+active_adapter = ENV.fetch("WEATHER_ADAPTER", "Weather::OpenWeatherMapAdapter")
+puts "  Active adapter : #{active_adapter}"
+puts "  Add new providers by subclassing Weather::BaseAdapter — zero controller changes."
 
 # ---------------------------------------------------------------------------
 # Teardown

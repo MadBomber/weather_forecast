@@ -16,13 +16,14 @@ module Api
       def current
         start_time = Time.current
         forecast = weather_service.current_weather(location: @location)
-        duration_ms = ((Time.current - start_time) * 1000).round(2)
+        @weather_duration_ms = ((Time.current - start_time) * 1000).round(2)
+        @cached = weather_service.last_cache_hit?
 
         render json: {
           data: forecast.to_h,
           performance: {
-            cached: weather_service.last_cache_hit?,
-            duration_ms: duration_ms
+            cached: @cached,
+            duration_ms: @weather_duration_ms
           }
         }
       end
@@ -36,13 +37,14 @@ module Api
       def forecast
         start_time = Time.current
         forecasts = weather_service.forecast(location: @location, days: @days)
-        duration_ms = ((Time.current - start_time) * 1000).round(2)
+        @weather_duration_ms = ((Time.current - start_time) * 1000).round(2)
+        @cached = weather_service.last_cache_hit?
 
         render json: {
           data: forecasts.map(&:to_h),
           performance: {
-            cached: weather_service.last_cache_hit?,
-            duration_ms: duration_ms
+            cached: @cached,
+            duration_ms: @weather_duration_ms
           }
         }
       end
@@ -70,6 +72,17 @@ module Api
       # Get the configured weather service adapter (resolved via AdapterFactory)
       def weather_service
         @weather_service ||= Weather::AdapterFactory.build
+      end
+
+      # Inject weather-specific fields into the process_action.action_controller
+      # instrumentation payload so they appear in the single structured log entry
+      # emitted by Console::Adapter::Rails::ActionController per request.
+      def append_info_to_payload(payload)
+        super
+        payload[:location]           = @location          if @location
+        payload[:cached]             = @cached             unless @cached.nil?
+        payload[:weather_duration_ms] = @weather_duration_ms if @weather_duration_ms
+        payload[:days]               = @days               if @days
       end
     end
   end
